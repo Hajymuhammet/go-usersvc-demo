@@ -1,0 +1,130 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"net"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"go-usersvc-demo/internal/config"
+	"go-usersvc-demo/internal/infrastructure/postgres"
+	infraredis "go-usersvc-demo/internal/infrastructure/redis"
+	"go-usersvc-demo/internal/service"
+	transportgrpc "go-usersvc-demo/internal/transport/grpc"
+	transporthttp "go-usersvc-demo/internal/transport/http"
+	"go-usersvc-demo/pkg/pb"
+
+	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+)
+
+// @title           Go User Service Demo API
+// @version         1.0
+// @description     A production-ready user management service with REST and gRPC APIs.
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   API Support
+// @contact.url    http://www.swagger.io/support
+// @contact.email  support@swagger.io
+
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host      localhost:8080
+// @BasePath  /
+
+// @securityDefinitions.basic  BasicAuth
+
+func main() {
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatalf("config: %v", err)
+	}
+
+	// Connect to PostgreSQL
+	db, err := postgres.NewPool(cfg.Database.DSN())
+	if err != nil {
+		log.Fatalf("database: %v", err)
+	}
+	defer db.Close()
+	log.Println("✅ Connected to PostgreSQL")
+
+	// Connect to Redis
+	redisClient, err := infraredis.NewClient(cfg.Redis.Addr, cfg.Redis.Password, cfg.Redis.DB)
+	if err != nil {
+		log.Fatalf("redis: %v", err)
+	}
+	defer redisClient.Close()
+	log.Println("✅ Connected to Redis")
+
+	// Wire dependencies
+	userRepo := postgres.NewUserRepo(db)
+	userCache := infraredis.NewUserCache(redisClient)
+	userSvc := service.NewUserService(userRepo, userCache)
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	g, ctx := errgroup.WithContext(ctx)
+
+	// 1. Start REST Server
+	httpHandler := transporthttp.NewHandler(userSvc)
+	router := transporthttp.NewRouter(httpHandler)
+	httpServer := &http.Server{
+		Addr:    fmt.Sprintf(":%s", cfg.Server.Port),
+		Handler: router,
+	}
+
+	g.Go(func() error {
+		log.Printf("🚀 REST server listening on %s", httpServer.Addr)
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			return fmt.Errorf("http server: %w", err)
+		}
+		return nil
+	})
+
+	// 2. Start gRPC Server
+	grpcServer := grpc.NewServer()
+	pb.RegisterUserServiceServer(grpcServer, transportgrpc.NewHandler(userSvc))
+	reflection.Register(grpcServer)
+
+	g.Go(func() error {
+		addr := fmt.Sprintf(":%s", cfg.Server.GRPCPort)
+		lis, err := net.Listen("tcp", addr)
+		if err != nil {
+			return fmt.Errorf("grpc listen: %w", err)
+		}
+		log.Printf("⚡ gRPC server listening on %s", addr)
+		if err := grpcServer.Serve(lis); err != nil {
+			return fmt.Errorf("grpc serve: %w", err)
+		}
+		return nil
+	})
+
+	// 3. Graceful Shutdown
+	g.Go(func() error {
+		<-ctx.Done()
+		log.Println("Shutting down servers...")
+
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		if err := httpServer.Shutdown(shutdownCtx); err != nil {
+			log.Printf("HTTP shutdown error: %v", err)
+		}
+		grpcServer.GracefulStop()
+
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
+		log.Fatalf("service stopped with error: %v", err)
+	}
+	log.Println("Service exited status ok")
+}
