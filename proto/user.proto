@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package user;
 
-option go_package = "go-usersvc-demo/pkg/pb";
+option go_package = "./pkg/pb";
 
 service UserService {
   rpc CreateUser  (CreateUserRequest)  returns (UserResponse)      {}
