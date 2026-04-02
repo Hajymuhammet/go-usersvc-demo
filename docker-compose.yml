@@ -1,16 +1,14 @@
-version: "3.9"
-
 services:
   db:
     image: postgres:16-alpine
     container_name: usersvc-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
-      POSTGRES_DB: ${DB_NAME:-usersdb}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
-      - "5432:5432"
+      - "5435:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -42,7 +40,7 @@ services:
     volumes:
       - ./migrations:/migrations
     command: >
-      -path=/migrations -database=postgres://${DB_USER:-postgres}:${DB_PASSWORD:-secret}@db:5432/${DB_NAME:-usersdb}?sslmode=disable -verbose up
+      -path=/migrations -database=postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable -verbose up
     restart: on-failure
 
   usersvc:
@@ -64,12 +62,12 @@ services:
       GRPC_PORT: 50051
       DB_HOST: db
       DB_PORT: 5432
-      DB_USER: ${DB_USER:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-secret}
-      DB_NAME: ${DB_NAME:-usersdb}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
       DB_SSLMODE: disable
       REDIS_ADDR: redis:6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_DB: 0
     env_file:
       - .env

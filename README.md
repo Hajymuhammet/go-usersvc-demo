@@ -15,7 +15,7 @@ A production-ready user management service built with Go. Supports both REST and
 
 ## 🧩 Prerequisites
 
-- Go 1.18+
+- Go 1.25.0
 - Docker
 - Docker Compose
 

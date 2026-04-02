@@ -1,0 +1,14 @@
+# Go binaries
+/bin/
+/build/
+/vendor/
+
+# Docker
+*.env
+
+# OS & editor files
+.DS_Store
+*.log
+*.swp
+.idea/
+.vscode/
