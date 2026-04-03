@@ -7,7 +7,13 @@ GOBUILD=$(GO) build
 GOLINT=golangci-lint
 DOCKER_COMPOSE=docker-compose
 
-.PHONY: all fmt vet lint test build run clean deps db-up db-down db-reset proto init-swagger
+# Load environment variables from .env
+ifneq (,$(wildcard .env))
+	include .env
+	export $(shell sed 's/=.*//' .env)
+endif
+
+.PHONY: all fmt vet lint test build run clean deps db-up db-down db-reset migrate-up migrate-down migrate-status proto init-swagger
 
 all: fmt vet lint test build
 
@@ -44,6 +50,16 @@ db-down:
 	$(DOCKER_COMPOSE) down
 
 db-reset: db-down db-up
+
+# Database migrations
+migrate-up:
+	migrate -path migrations -database "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)" up
+
+migrate-down:
+	migrate -path migrations -database "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)" down
+
+migrate-status:
+	migrate -path migrations -database "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)" version
 
 # Protobuf generate (gRPC, if tooling is set up)
 proto:

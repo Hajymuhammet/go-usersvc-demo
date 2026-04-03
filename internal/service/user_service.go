@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 
 	"go-usersvc-demo/internal/domain"
 
@@ -45,6 +46,7 @@ func (s *UserService) CreateUser(ctx context.Context, input domain.CreateUserInp
 
 	created, err := s.repo.Create(ctx, user)
 	if err != nil {
+		log.Printf("create user: %v", err)
 		return nil, err
 	}
 
