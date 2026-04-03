@@ -1,6 +1,9 @@
 package domain
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 // User is the core entity of the service.
 type User struct {
@@ -42,17 +45,17 @@ type UserList struct {
 
 // UserRepository defines the persistence contract.
 type UserRepository interface {
-	Create(user *User) (*User, error)
-	GetByID(id int64) (*User, error)
-	GetByEmail(email string) (*User, error)
-	List(filter ListFilter) (*UserList, error)
-	Update(id int64, input UpdateUserInput) (*User, error)
-	Delete(id int64) error
+	Create(ctx context.Context, user *User) (*User, error)
+	GetByID(ctx context.Context, id int64) (*User, error)
+	GetByEmail(ctx context.Context, email string) (*User, error)
+	List(ctx context.Context, filter ListFilter) (*UserList, error)
+	Update(ctx context.Context, id int64, input UpdateUserInput) (*User, error)
+	Delete(ctx context.Context, id int64) error
 }
 
 // UserCache defines the caching contract.
 type UserCache interface {
-	Get(id int64) (*User, error)
-	Set(user *User) error
-	Delete(id int64) error
+	Get(ctx context.Context, id int64) (*User, error)
+	Set(ctx context.Context, user *User) error
+	Delete(ctx context.Context, id int64) error
 }

@@ -1,6 +1,7 @@
 package service_test
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
@@ -20,7 +21,7 @@ func newMockRepo() *mockRepo {
 	return &mockRepo{users: make(map[int64]*domain.User), nextID: 1}
 }
 
-func (m *mockRepo) Create(u *domain.User) (*domain.User, error) {
+func (m *mockRepo) Create(ctx context.Context, u *domain.User) (*domain.User, error) {
 	for _, existing := range m.users {
 		if existing.Email == u.Email {
 			return nil, errors.New("email already exists")
@@ -34,14 +35,14 @@ func (m *mockRepo) Create(u *domain.User) (*domain.User, error) {
 	return u, nil
 }
 
-func (m *mockRepo) GetByID(id int64) (*domain.User, error) {
+func (m *mockRepo) GetByID(ctx context.Context, id int64) (*domain.User, error) {
 	if u, ok := m.users[id]; ok {
 		return u, nil
 	}
 	return nil, errors.New("user not found")
 }
 
-func (m *mockRepo) GetByEmail(email string) (*domain.User, error) {
+func (m *mockRepo) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
 	for _, u := range m.users {
 		if u.Email == email {
 			return u, nil
@@ -50,7 +51,7 @@ func (m *mockRepo) GetByEmail(email string) (*domain.User, error) {
 	return nil, errors.New("user not found")
 }
 
-func (m *mockRepo) List(filter domain.ListFilter) (*domain.UserList, error) {
+func (m *mockRepo) List(ctx context.Context, filter domain.ListFilter) (*domain.UserList, error) {
 	var users []*domain.User
 	for _, u := range m.users {
 		users = append(users, u)
@@ -58,7 +59,7 @@ func (m *mockRepo) List(filter domain.ListFilter) (*domain.UserList, error) {
 	return &domain.UserList{Data: users, Total: int64(len(users)), Page: filter.Page, Limit: filter.Limit}, nil
 }
 
-func (m *mockRepo) Update(id int64, input domain.UpdateUserInput) (*domain.User, error) {
+func (m *mockRepo) Update(ctx context.Context, id int64, input domain.UpdateUserInput) (*domain.User, error) {
 	u, ok := m.users[id]
 	if !ok {
 		return nil, errors.New("user not found")
@@ -73,7 +74,7 @@ func (m *mockRepo) Update(id int64, input domain.UpdateUserInput) (*domain.User,
 	return u, nil
 }
 
-func (m *mockRepo) Delete(id int64) error {
+func (m *mockRepo) Delete(ctx context.Context, id int64) error {
 	if _, ok := m.users[id]; !ok {
 		return errors.New("user not found")
 	}
@@ -91,19 +92,19 @@ func newMockCache() *mockCache {
 	return &mockCache{data: make(map[int64]*domain.User)}
 }
 
-func (c *mockCache) Get(id int64) (*domain.User, error) {
+func (c *mockCache) Get(ctx context.Context, id int64) (*domain.User, error) {
 	if u, ok := c.data[id]; ok {
 		return u, nil
 	}
 	return nil, errors.New("cache miss")
 }
 
-func (c *mockCache) Set(u *domain.User) error {
+func (c *mockCache) Set(ctx context.Context, u *domain.User) error {
 	c.data[u.ID] = u
 	return nil
 }
 
-func (c *mockCache) Delete(id int64) error {
+func (c *mockCache) Delete(ctx context.Context, id int64) error {
 	delete(c.data, id)
 	return nil
 }
@@ -120,7 +121,7 @@ func newSvc() (*service.UserService, *mockRepo, *mockCache) {
 func TestCreateUser_Success(t *testing.T) {
 	svc, _, _ := newSvc()
 
-	user, err := svc.CreateUser(domain.CreateUserInput{
+	user, err := svc.CreateUser(context.Background(), domain.CreateUserInput{
 		Name: "John Doe", Email: "john@example.com", Password: "pass123",
 	})
 	if err != nil {
@@ -138,11 +139,11 @@ func TestCreateUser_DuplicateEmail(t *testing.T) {
 	svc, _, _ := newSvc()
 
 	input := domain.CreateUserInput{Name: "John", Email: "dup@example.com", Password: "pass123"}
-	if _, err := svc.CreateUser(input); err != nil {
+	if _, err := svc.CreateUser(context.Background(), input); err != nil {
 		t.Fatalf("first create failed: %v", err)
 	}
 
-	_, err := svc.CreateUser(input)
+	_, err := svc.CreateUser(context.Background(), input)
 	if err == nil {
 		t.Fatal("expected duplicate email error, got nil")
 	}
@@ -153,9 +154,9 @@ func TestGetUserByID_CacheHit(t *testing.T) {
 
 	// Manually seed cache
 	expected := &domain.User{ID: 99, Name: "Cached", Email: "cache@example.com"}
-	_ = cache.Set(expected)
+	_ = cache.Set(context.Background(), expected)
 
-	user, err := svc.GetUserByID(99)
+	user, err := svc.GetUserByID(context.Background(), 99)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -170,7 +171,7 @@ func TestGetUserByID_CacheMiss_DBFallback(t *testing.T) {
 	// Seed the repo directly
 	repo.users[5] = &domain.User{ID: 5, Name: "DB User", Email: "db@example.com", CreatedAt: time.Now(), UpdatedAt: time.Now()}
 
-	user, err := svc.GetUserByID(5)
+	user, err := svc.GetUserByID(context.Background(), 5)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -182,7 +183,7 @@ func TestGetUserByID_CacheMiss_DBFallback(t *testing.T) {
 func TestGetUserByID_NotFound(t *testing.T) {
 	svc, _, _ := newSvc()
 
-	_, err := svc.GetUserByID(999)
+	_, err := svc.GetUserByID(context.Background(), 999)
 	if err == nil {
 		t.Fatal("expected error for non-existent user")
 	}
@@ -191,10 +192,10 @@ func TestGetUserByID_NotFound(t *testing.T) {
 func TestListUsers(t *testing.T) {
 	svc, _, _ := newSvc()
 
-	_, _ = svc.CreateUser(domain.CreateUserInput{Name: "A", Email: "a@test.com", Password: "pass123"})
-	_, _ = svc.CreateUser(domain.CreateUserInput{Name: "B", Email: "b@test.com", Password: "pass123"})
+	_, _ = svc.CreateUser(context.Background(), domain.CreateUserInput{Name: "A", Email: "a@test.com", Password: "pass123"})
+	_, _ = svc.CreateUser(context.Background(), domain.CreateUserInput{Name: "B", Email: "b@test.com", Password: "pass123"})
 
-	result, err := svc.ListUsers(domain.ListFilter{Page: 1, Limit: 10})
+	result, err := svc.ListUsers(context.Background(), domain.ListFilter{Page: 1, Limit: 10})
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -206,10 +207,10 @@ func TestListUsers(t *testing.T) {
 func TestUpdateUser_Success(t *testing.T) {
 	svc, _, _ := newSvc()
 
-	user, _ := svc.CreateUser(domain.CreateUserInput{Name: "Old Name", Email: "upd@test.com", Password: "pass123"})
+	user, _ := svc.CreateUser(context.Background(), domain.CreateUserInput{Name: "Old Name", Email: "upd@test.com", Password: "pass123"})
 
 	newName := "New Name"
-	updated, err := svc.UpdateUser(user.ID, domain.UpdateUserInput{Name: &newName})
+	updated, err := svc.UpdateUser(context.Background(), user.ID, domain.UpdateUserInput{Name: &newName})
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -221,13 +222,13 @@ func TestUpdateUser_Success(t *testing.T) {
 func TestDeleteUser_Success(t *testing.T) {
 	svc, _, _ := newSvc()
 
-	user, _ := svc.CreateUser(domain.CreateUserInput{Name: "Del", Email: "del@test.com", Password: "pass123"})
+	user, _ := svc.CreateUser(context.Background(), domain.CreateUserInput{Name: "Del", Email: "del@test.com", Password: "pass123"})
 
-	if err := svc.DeleteUser(user.ID); err != nil {
+	if err := svc.DeleteUser(context.Background(), user.ID); err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	_, err := svc.GetUserByID(user.ID)
+	_, err := svc.GetUserByID(context.Background(), user.ID)
 	if err == nil {
 		t.Fatal("expected error after delete, user still exists")
 	}
@@ -236,7 +237,7 @@ func TestDeleteUser_Success(t *testing.T) {
 func TestDeleteUser_NotFound(t *testing.T) {
 	svc, _, _ := newSvc()
 
-	err := svc.DeleteUser(999)
+	err := svc.DeleteUser(context.Background(), 999)
 	if err == nil {
 		t.Fatal("expected error for non-existent user")
 	}

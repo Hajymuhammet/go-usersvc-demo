@@ -12,3 +12,6 @@
 *.swp
 .idea/
 .vscode/
+
+# Swagger
+docs/

@@ -34,12 +34,12 @@ func toProtoUser(u *domain.User) *pb.UserResponse {
 }
 
 // CreateUser creates a new user.
-func (h *Handler) CreateUser(_ context.Context, req *pb.CreateUserRequest) (*pb.UserResponse, error) {
+func (h *Handler) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.UserResponse, error) {
 	if req.Name == "" || req.Email == "" || req.Password == "" {
 		return nil, status.Error(codes.InvalidArgument, "name, email, and password are required")
 	}
 
-	user, err := h.svc.CreateUser(domain.CreateUserInput{
+	user, err := h.svc.CreateUser(ctx, domain.CreateUserInput{
 		Name:     req.Name,
 		Email:    req.Email,
 		Password: req.Password,
@@ -55,12 +55,12 @@ func (h *Handler) CreateUser(_ context.Context, req *pb.CreateUserRequest) (*pb.
 }
 
 // GetUserByID fetches a user by ID.
-func (h *Handler) GetUserByID(_ context.Context, req *pb.GetUserByIDRequest) (*pb.UserResponse, error) {
+func (h *Handler) GetUserByID(ctx context.Context, req *pb.GetUserByIDRequest) (*pb.UserResponse, error) {
 	if req.Id == 0 {
 		return nil, status.Error(codes.InvalidArgument, "id is required")
 	}
 
-	user, err := h.svc.GetUserByID(req.Id)
+	user, err := h.svc.GetUserByID(ctx, req.Id)
 	if err != nil {
 		if err.Error() == "user not found" {
 			return nil, status.Error(codes.NotFound, err.Error())
@@ -72,7 +72,7 @@ func (h *Handler) GetUserByID(_ context.Context, req *pb.GetUserByIDRequest) (*p
 }
 
 // ListUsers returns a paginated list of users.
-func (h *Handler) ListUsers(_ context.Context, req *pb.ListUsersRequest) (*pb.ListUsersResponse, error) {
+func (h *Handler) ListUsers(ctx context.Context, req *pb.ListUsersRequest) (*pb.ListUsersResponse, error) {
 	page := int(req.Page)
 	limit := int(req.Limit)
 	if page <= 0 {
@@ -82,7 +82,7 @@ func (h *Handler) ListUsers(_ context.Context, req *pb.ListUsersRequest) (*pb.Li
 		limit = 10
 	}
 
-	result, err := h.svc.ListUsers(domain.ListFilter{Page: page, Limit: limit})
+	result, err := h.svc.ListUsers(ctx, domain.ListFilter{Page: page, Limit: limit})
 	if err != nil {
 		return nil, status.Error(codes.Internal, "could not list users")
 	}
@@ -106,7 +106,7 @@ func (h *Handler) ListUsers(_ context.Context, req *pb.ListUsersRequest) (*pb.Li
 }
 
 // UpdateUser updates an existing user.
-func (h *Handler) UpdateUser(_ context.Context, req *pb.UpdateUserRequest) (*pb.UserResponse, error) {
+func (h *Handler) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UserResponse, error) {
 	if req.Id == 0 {
 		return nil, status.Error(codes.InvalidArgument, "id is required")
 	}
@@ -122,7 +122,7 @@ func (h *Handler) UpdateUser(_ context.Context, req *pb.UpdateUserRequest) (*pb.
 		input.Password = &req.Password
 	}
 
-	user, err := h.svc.UpdateUser(req.Id, input)
+	user, err := h.svc.UpdateUser(ctx, req.Id, input)
 	if err != nil {
 		if err.Error() == "user not found" {
 			return nil, status.Error(codes.NotFound, err.Error())
@@ -134,12 +134,12 @@ func (h *Handler) UpdateUser(_ context.Context, req *pb.UpdateUserRequest) (*pb.
 }
 
 // DeleteUser removes a user by ID.
-func (h *Handler) DeleteUser(_ context.Context, req *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
+func (h *Handler) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
 	if req.Id == 0 {
 		return nil, status.Error(codes.InvalidArgument, "id is required")
 	}
 
-	if err := h.svc.DeleteUser(req.Id); err != nil {
+	if err := h.svc.DeleteUser(ctx, req.Id); err != nil {
 		if err.Error() == "user not found" {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}

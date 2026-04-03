@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -23,9 +24,9 @@ func NewUserService(repo domain.UserRepository, cache domain.UserCache) *UserSer
 }
 
 // CreateUser hashes the password and persists the new user.
-func (s *UserService) CreateUser(input domain.CreateUserInput) (*domain.User, error) {
+func (s *UserService) CreateUser(ctx context.Context, input domain.CreateUserInput) (*domain.User, error) {
 	// Check for duplicate email
-	existing, _ := s.repo.GetByEmail(input.Email)
+	existing, _ := s.repo.GetByEmail(ctx, input.Email)
 	if existing != nil {
 		return nil, errors.New("email already registered")
 	}
@@ -42,21 +43,21 @@ func (s *UserService) CreateUser(input domain.CreateUserInput) (*domain.User, er
 		Password: string(hashed),
 	}
 
-	created, err := s.repo.Create(user)
+	created, err := s.repo.Create(ctx, user)
 	if err != nil {
 		return nil, err
 	}
 
 	// Warm the cache
-	_ = s.cache.Set(created)
+	_ = s.cache.Set(ctx, created)
 
 	return created, nil
 }
 
 // GetUserByID returns a user, preferring the cache over the database.
-func (s *UserService) GetUserByID(id int64) (*domain.User, error) {
+func (s *UserService) GetUserByID(ctx context.Context, id int64) (*domain.User, error) {
 	// Try cache first
-	cached, err := s.cache.Get(id)
+	cached, err := s.cache.Get(ctx, id)
 	if err == nil {
 		return cached, nil
 	}
@@ -67,30 +68,30 @@ func (s *UserService) GetUserByID(id int64) (*domain.User, error) {
 		_ = err
 	}
 
-	user, err := s.repo.GetByID(id)
+	user, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
 	// Hydrate cache for next request
-	_ = s.cache.Set(user)
+	_ = s.cache.Set(ctx, user)
 
 	return user, nil
 }
 
 // ListUsers returns a paginated list of users.
-func (s *UserService) ListUsers(filter domain.ListFilter) (*domain.UserList, error) {
+func (s *UserService) ListUsers(ctx context.Context, filter domain.ListFilter) (*domain.UserList, error) {
 	if filter.Page <= 0 {
 		filter.Page = 1
 	}
 	if filter.Limit <= 0 {
 		filter.Limit = 10
 	}
-	return s.repo.List(filter)
+	return s.repo.List(ctx, filter)
 }
 
 // UpdateUser updates allowed user fields and invalidates the cache.
-func (s *UserService) UpdateUser(id int64, input domain.UpdateUserInput) (*domain.User, error) {
+func (s *UserService) UpdateUser(ctx context.Context, id int64, input domain.UpdateUserInput) (*domain.User, error) {
 	// Hash password if provided
 	if input.Password != nil {
 		hashed, err := bcrypt.GenerateFromPassword([]byte(*input.Password), bcrypt.DefaultCost)
@@ -101,23 +102,23 @@ func (s *UserService) UpdateUser(id int64, input domain.UpdateUserInput) (*domai
 		input.Password = &h
 	}
 
-	updated, err := s.repo.Update(id, input)
+	updated, err := s.repo.Update(ctx, id, input)
 	if err != nil {
 		return nil, err
 	}
 
 	// Invalidate stale cache entry
-	_ = s.cache.Delete(id)
-	_ = s.cache.Set(updated)
+	_ = s.cache.Delete(ctx, id)
+	_ = s.cache.Set(ctx, updated)
 
 	return updated, nil
 }
 
 // DeleteUser removes a user and evicts the cache.
-func (s *UserService) DeleteUser(id int64) error {
-	if err := s.repo.Delete(id); err != nil {
+func (s *UserService) DeleteUser(ctx context.Context, id int64) error {
+	if err := s.repo.Delete(ctx, id); err != nil {
 		return err
 	}
-	_ = s.cache.Delete(id)
+	_ = s.cache.Delete(ctx, id)
 	return nil
 }

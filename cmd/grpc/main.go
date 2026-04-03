@@ -44,7 +44,9 @@ func main() {
 	userSvc := service.NewUserService(userRepo, userCache)
 
 	// Create gRPC server
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(transportgrpc.LoggingInterceptor),
+	)
 	pb.RegisterUserServiceServer(grpcServer, transportgrpc.NewHandler(userSvc))
 	reflection.Register(grpcServer) // enables grpcurl discovery
 

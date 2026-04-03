@@ -90,7 +90,9 @@ func main() {
 	})
 
 	// 2. Start gRPC Server
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(transportgrpc.LoggingInterceptor),
+	)
 	pb.RegisterUserServiceServer(grpcServer, transportgrpc.NewHandler(userSvc))
 	reflection.Register(grpcServer)
 

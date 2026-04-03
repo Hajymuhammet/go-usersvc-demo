@@ -51,7 +51,7 @@ func (h *Handler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	user, err := h.svc.CreateUser(input)
+	user, err := h.svc.CreateUser(c.Request.Context(), input)
 	if err != nil {
 		if err.Error() == "email already registered" {
 			respondError(c, http.StatusConflict, err.Error())
@@ -82,7 +82,7 @@ func (h *Handler) GetUserByID(c *gin.Context) {
 		return
 	}
 
-	user, err := h.svc.GetUserByID(id)
+	user, err := h.svc.GetUserByID(c.Request.Context(), id)
 	if err != nil {
 		if err.Error() == "user not found" {
 			respondError(c, http.StatusNotFound, err.Error())
@@ -110,7 +110,7 @@ func (h *Handler) ListUsers(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
 
-	result, err := h.svc.ListUsers(domain.ListFilter{Page: page, Limit: limit})
+	result, err := h.svc.ListUsers(c.Request.Context(), domain.ListFilter{Page: page, Limit: limit})
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, "could not list users")
 		return
@@ -150,7 +150,7 @@ func (h *Handler) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	user, err := h.svc.UpdateUser(id, input)
+	user, err := h.svc.UpdateUser(c.Request.Context(), id, input)
 	if err != nil {
 		if err.Error() == "user not found" {
 			respondError(c, http.StatusNotFound, err.Error())
@@ -181,7 +181,7 @@ func (h *Handler) DeleteUser(c *gin.Context) {
 		return
 	}
 
-	if err := h.svc.DeleteUser(id); err != nil {
+	if err := h.svc.DeleteUser(c.Request.Context(), id); err != nil {
 		if err.Error() == "user not found" {
 			respondError(c, http.StatusNotFound, err.Error())
 			return

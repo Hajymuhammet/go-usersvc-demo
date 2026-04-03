@@ -24,7 +24,7 @@ func NewUserRepo(db *pgxpool.Pool) *UserRepo {
 }
 
 // Create inserts a new user into the database.
-func (r *UserRepo) Create(user *domain.User) (*domain.User, error) {
+func (r *UserRepo) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
 	query := `
 		INSERT INTO users (name, email, password, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5)
@@ -33,7 +33,7 @@ func (r *UserRepo) Create(user *domain.User) (*domain.User, error) {
 	now := time.Now().UTC()
 	result := &domain.User{}
 
-	err := r.db.QueryRow(context.Background(), query,
+	err := r.db.QueryRow(ctx, query,
 		user.Name, user.Email, user.Password, now, now,
 	).Scan(&result.ID, &result.Name, &result.Email, &result.CreatedAt, &result.UpdatedAt)
 
@@ -48,11 +48,11 @@ func (r *UserRepo) Create(user *domain.User) (*domain.User, error) {
 }
 
 // GetByID fetches a single user by primary key.
-func (r *UserRepo) GetByID(id int64) (*domain.User, error) {
+func (r *UserRepo) GetByID(ctx context.Context, id int64) (*domain.User, error) {
 	query := `SELECT id, name, email, password, created_at, updated_at FROM users WHERE id = $1`
 
 	user := &domain.User{}
-	err := r.db.QueryRow(context.Background(), query, id).
+	err := r.db.QueryRow(ctx, query, id).
 		Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.CreatedAt, &user.UpdatedAt)
 
 	if err != nil {
@@ -66,11 +66,11 @@ func (r *UserRepo) GetByID(id int64) (*domain.User, error) {
 }
 
 // GetByEmail fetches a user by their email address.
-func (r *UserRepo) GetByEmail(email string) (*domain.User, error) {
+func (r *UserRepo) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
 	query := `SELECT id, name, email, password, created_at, updated_at FROM users WHERE email = $1`
 
 	user := &domain.User{}
-	err := r.db.QueryRow(context.Background(), query, email).
+	err := r.db.QueryRow(ctx, query, email).
 		Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.CreatedAt, &user.UpdatedAt)
 
 	if err != nil {
@@ -84,16 +84,16 @@ func (r *UserRepo) GetByEmail(email string) (*domain.User, error) {
 }
 
 // List returns a paginated list of users.
-func (r *UserRepo) List(filter domain.ListFilter) (*domain.UserList, error) {
+func (r *UserRepo) List(ctx context.Context, filter domain.ListFilter) (*domain.UserList, error) {
 	offset := (filter.Page - 1) * filter.Limit
 
 	// Count total
 	var total int64
-	if err := r.db.QueryRow(context.Background(), `SELECT COUNT(*) FROM users`).Scan(&total); err != nil {
+	if err := r.db.QueryRow(ctx, `SELECT COUNT(*) FROM users`).Scan(&total); err != nil {
 		return nil, fmt.Errorf("postgres: count users: %w", err)
 	}
 
-	rows, err := r.db.Query(context.Background(),
+	rows, err := r.db.Query(ctx,
 		`SELECT id, name, email, created_at, updated_at FROM users ORDER BY id DESC LIMIT $1 OFFSET $2`,
 		filter.Limit, offset,
 	)
@@ -120,7 +120,7 @@ func (r *UserRepo) List(filter domain.ListFilter) (*domain.UserList, error) {
 }
 
 // Update modifies an existing user's fields.
-func (r *UserRepo) Update(id int64, input domain.UpdateUserInput) (*domain.User, error) {
+func (r *UserRepo) Update(ctx context.Context, id int64, input domain.UpdateUserInput) (*domain.User, error) {
 	setClauses := []string{}
 	args := []interface{}{}
 	argIdx := 1
@@ -142,7 +142,7 @@ func (r *UserRepo) Update(id int64, input domain.UpdateUserInput) (*domain.User,
 	}
 
 	if len(setClauses) == 0 {
-		return r.GetByID(id)
+		return r.GetByID(ctx, id)
 	}
 
 	setClauses = append(setClauses, fmt.Sprintf("updated_at = $%d", argIdx))
@@ -156,7 +156,7 @@ func (r *UserRepo) Update(id int64, input domain.UpdateUserInput) (*domain.User,
 	)
 
 	user := &domain.User{}
-	err := r.db.QueryRow(context.Background(), query, args...).
+	err := r.db.QueryRow(ctx, query, args...).
 		Scan(&user.ID, &user.Name, &user.Email, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -169,8 +169,8 @@ func (r *UserRepo) Update(id int64, input domain.UpdateUserInput) (*domain.User,
 }
 
 // Delete removes a user by ID.
-func (r *UserRepo) Delete(id int64) error {
-	result, err := r.db.Exec(context.Background(), `DELETE FROM users WHERE id = $1`, id)
+func (r *UserRepo) Delete(ctx context.Context, id int64) error {
+	result, err := r.db.Exec(ctx, `DELETE FROM users WHERE id = $1`, id)
 	if err != nil {
 		return fmt.Errorf("postgres: delete user: %w", err)
 	}

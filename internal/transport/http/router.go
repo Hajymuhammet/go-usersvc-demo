@@ -2,14 +2,19 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
-	swaggerFiles "github.com/swaggo/files" // swagger embed files
-	"github.com/swaggo/gin-swagger"        // gin-swagger middleware
+	swaggerFiles "github.com/swaggo/files"     // swagger embed files
+	ginSwagger "github.com/swaggo/gin-swagger" // gin-swagger middleware
 
+	_ "go-usersvc-demo/docs" // swagger generated docs
 )
 
 // NewRouter creates and returns a configured Gin engine.
 func NewRouter(h *Handler) *gin.Engine {
-	r := gin.Default()
+	r := gin.New() // Use gin.New() instead of gin.Default() to avoid default middlewares
+
+	// Add custom middlewares
+	r.Use(LoggingMiddleware())
+	r.Use(gin.Recovery()) // Keep recovery
 
 	// Health check
 	r.GET("/health", func(c *gin.Context) {

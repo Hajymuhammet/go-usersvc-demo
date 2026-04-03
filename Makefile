@@ -7,7 +7,7 @@ GOBUILD=$(GO) build
 GOLINT=golangci-lint
 DOCKER_COMPOSE=docker-compose
 
-.PHONY: all fmt vet lint test build run clean deps db-up db-down db-reset proto
+.PHONY: all fmt vet lint test build run clean deps db-up db-down db-reset proto init-swagger
 
 all: fmt vet lint test build
 
@@ -48,3 +48,6 @@ db-reset: db-down db-up
 # Protobuf generate (gRPC, if tooling is set up)
 proto:
 	protoc --go_out=. --go-grpc_out=. proto/user.proto
+
+init-swagger:
+	swag init -g cmd/api/main.go -o ./docs

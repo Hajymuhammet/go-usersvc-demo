@@ -29,8 +29,8 @@ func userKey(id int64) string {
 }
 
 // Get retrieves a user from cache by ID.
-func (c *UserCache) Get(id int64) (*domain.User, error) {
-	data, err := c.client.Get(context.Background(), userKey(id)).Bytes()
+func (c *UserCache) Get(ctx context.Context, id int64) (*domain.User, error) {
+	data, err := c.client.Get(ctx, userKey(id)).Bytes()
 	if err != nil {
 		return nil, err // redis.Nil if not found
 	}
@@ -44,16 +44,16 @@ func (c *UserCache) Get(id int64) (*domain.User, error) {
 }
 
 // Set stores a user in cache.
-func (c *UserCache) Set(user *domain.User) error {
+func (c *UserCache) Set(ctx context.Context, user *domain.User) error {
 	data, err := json.Marshal(user)
 	if err != nil {
 		return fmt.Errorf("redis: marshal user: %w", err)
 	}
 
-	return c.client.Set(context.Background(), userKey(user.ID), data, c.ttl).Err()
+	return c.client.Set(ctx, userKey(user.ID), data, c.ttl).Err()
 }
 
 // Delete removes a user from cache.
-func (c *UserCache) Delete(id int64) error {
-	return c.client.Del(context.Background(), userKey(id)).Err()
+func (c *UserCache) Delete(ctx context.Context, id int64) error {
+	return c.client.Del(ctx, userKey(id)).Err()
 }
