@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 
+	"go-usersvc-demo/internal/auth"
 	"go-usersvc-demo/internal/config"
 	"go-usersvc-demo/internal/infrastructure/postgres"
 	infraredis "go-usersvc-demo/internal/infrastructure/redis"
@@ -43,9 +45,18 @@ func main() {
 	userCache := infraredis.NewUserCache(redisClient)
 	userSvc := service.NewUserService(userRepo, userCache)
 
+	tokenManager := auth.NewManager(
+		cfg.Auth.Secret,
+		parseDurationOrDefault(cfg.Auth.AccessTokenTTL, 15*time.Minute),
+		parseDurationOrDefault(cfg.Auth.RefreshTokenTTL, 168*time.Hour),
+	)
+
 	// Create gRPC server
 	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(transportgrpc.LoggingInterceptor),
+		grpc.ChainUnaryInterceptor(
+			transportgrpc.LoggingInterceptor,
+			transportgrpc.NewAuthInterceptor(tokenManager),
+		),
 	)
 	pb.RegisterUserServiceServer(grpcServer, transportgrpc.NewHandler(userSvc))
 	reflection.Register(grpcServer) // enables grpcurl discovery
@@ -60,4 +71,12 @@ func main() {
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("grpc server: %v", err)
 	}
+}
+
+func parseDurationOrDefault(value string, fallback time.Duration) time.Duration {
+	d, err := time.ParseDuration(value)
+	if err != nil {
+		return fallback
+	}
+	return d
 }

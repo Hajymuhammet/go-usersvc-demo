@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"go-usersvc-demo/internal/auth"
 	"go-usersvc-demo/internal/config"
 	"go-usersvc-demo/internal/infrastructure/postgres"
 	infraredis "go-usersvc-demo/internal/infrastructure/redis"
@@ -68,14 +69,21 @@ func main() {
 	userCache := infraredis.NewUserCache(redisClient)
 	userSvc := service.NewUserService(userRepo, userCache)
 
+	tokenManager := auth.NewManager(
+		cfg.Auth.Secret,
+		parseDurationOrDefault(cfg.Auth.AccessTokenTTL, 15*time.Minute),
+		parseDurationOrDefault(cfg.Auth.RefreshTokenTTL, 168*time.Hour),
+	)
+	authSvc := service.NewAuthService(userRepo, tokenManager)
+
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
 	g, ctx := errgroup.WithContext(ctx)
 
 	// 1. Start REST Server
-	httpHandler := transporthttp.NewHandler(userSvc)
-	router := transporthttp.NewRouter(httpHandler)
+	httpHandler := transporthttp.NewHandler(userSvc, authSvc)
+	router := transporthttp.NewRouter(httpHandler, transporthttp.NewAuthMiddleware(tokenManager))
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%s", cfg.Server.Port),
 		Handler: router,
@@ -91,7 +99,10 @@ func main() {
 
 	// 2. Start gRPC Server
 	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(transportgrpc.LoggingInterceptor),
+		grpc.ChainUnaryInterceptor(
+			transportgrpc.LoggingInterceptor,
+			transportgrpc.NewAuthInterceptor(tokenManager),
+		),
 	)
 	pb.RegisterUserServiceServer(grpcServer, transportgrpc.NewHandler(userSvc))
 	reflection.Register(grpcServer)
@@ -129,4 +140,12 @@ func main() {
 		log.Fatalf("service stopped with error: %v", err)
 	}
 	log.Println("Service exited status ok")
+}
+
+func parseDurationOrDefault(value string, fallback time.Duration) time.Duration {
+	d, err := time.ParseDuration(value)
+	if err != nil {
+		return fallback
+	}
+	return d
 }

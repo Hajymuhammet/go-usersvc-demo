@@ -15,16 +15,31 @@ var validate = validator.New()
 
 // Handler holds the HTTP handlers for user operations.
 type Handler struct {
-	svc *service.UserService
+	svc     *service.UserService
+	authSvc *service.AuthService
 }
 
 // NewHandler creates a new HTTP Handler.
-func NewHandler(svc *service.UserService) *Handler {
-	return &Handler{svc: svc}
+func NewHandler(svc *service.UserService, authSvc *service.AuthService) *Handler {
+	return &Handler{svc: svc, authSvc: authSvc}
 }
 
 func respondError(c *gin.Context, code int, msg string) {
 	c.JSON(code, gin.H{"error": msg})
+}
+
+type loginRequest struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=6"`
+}
+
+type refreshRequest struct {
+	RefreshToken string `json:"refresh_token" validate:"required"`
+}
+
+type tokenResponse struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 // CreateUser godoc
@@ -64,6 +79,70 @@ func (h *Handler) CreateUser(c *gin.Context) {
 	c.JSON(http.StatusCreated, user)
 }
 
+// Login godoc
+// @Summary      Login and receive access/refresh tokens
+// @Description  Authenticate user credentials and return JWT access and refresh tokens
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        credentials  body      loginRequest  true  "Login credentials"
+// @Success      200          {object}  tokenResponse
+// @Failure      400          {object}  map[string]string
+// @Failure      401          {object}  map[string]string
+// @Failure      500          {object}  map[string]string
+// @Router       /auth/login [post]
+func (h *Handler) Login(c *gin.Context) {
+	var input loginRequest
+	if err := c.ShouldBindJSON(&input); err != nil {
+		respondError(c, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	if err := validate.Struct(input); err != nil {
+		respondError(c, http.StatusUnprocessableEntity, err.Error())
+		return
+	}
+
+	accessToken, refreshToken, _, err := h.authSvc.Login(c.Request.Context(), input.Email, input.Password)
+	if err != nil {
+		respondError(c, http.StatusUnauthorized, "invalid credentials")
+		return
+	}
+
+	c.JSON(http.StatusOK, tokenResponse{AccessToken: accessToken, RefreshToken: refreshToken})
+}
+
+// Refresh godoc
+// @Summary      Refresh access token
+// @Description  Use a refresh token to issue a new access token
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        refresh  body      refreshRequest  true  "Refresh token"
+// @Success      200      {object}  tokenResponse
+// @Failure      400      {object}  map[string]string
+// @Failure      401      {object}  map[string]string
+// @Failure      500      {object}  map[string]string
+// @Router       /auth/refresh [post]
+func (h *Handler) Refresh(c *gin.Context) {
+	var input refreshRequest
+	if err := c.ShouldBindJSON(&input); err != nil {
+		respondError(c, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	if err := validate.Struct(input); err != nil {
+		respondError(c, http.StatusUnprocessableEntity, err.Error())
+		return
+	}
+
+	accessToken, refreshToken, err := h.authSvc.Refresh(c.Request.Context(), input.RefreshToken)
+	if err != nil {
+		respondError(c, http.StatusUnauthorized, "invalid refresh token")
+		return
+	}
+
+	c.JSON(http.StatusOK, tokenResponse{AccessToken: accessToken, RefreshToken: refreshToken})
+}
+
 // GetUserByID godoc
 // @Summary      Get user by ID
 // @Description  Retrieve a user's details by their database ID
@@ -92,6 +171,37 @@ func (h *Handler) GetUserByID(c *gin.Context) {
 		return
 	}
 	user.Password = "" // never expose password hash
+
+	c.JSON(http.StatusOK, user)
+}
+
+// GetProfile godoc
+// @Summary      Get current user profile
+// @Description  Get profile data for the authenticated user
+// @Tags         users
+// @Produce      json
+// @Success      200  {object}  domain.User
+// @Failure      401  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /users/me [get]
+func (h *Handler) GetProfile(c *gin.Context) {
+	userID, ok := UserIDFromContext(c.Request.Context())
+	if !ok {
+		respondError(c, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	user, err := h.svc.GetUserByID(c.Request.Context(), userID)
+	if err != nil {
+		if err.Error() == "user not found" {
+			respondError(c, http.StatusNotFound, err.Error())
+			return
+		}
+		respondError(c, http.StatusInternalServerError, "could not fetch profile")
+		return
+	}
+	user.Password = ""
 
 	c.JSON(http.StatusOK, user)
 }

@@ -13,11 +13,18 @@ type Config struct {
 	Server   ServerConfig
 	Database DatabaseConfig
 	Redis    RedisConfig
+	Auth     AuthConfig
 }
 
 type ServerConfig struct {
 	Port     string
 	GRPCPort string
+}
+
+type AuthConfig struct {
+	Secret          string
+	AccessTokenTTL  string
+	RefreshTokenTTL string
 }
 
 type DatabaseConfig struct {
@@ -67,6 +74,11 @@ func Load() (*Config, error) {
 			Addr:     getEnv("REDIS_ADDR", "localhost:6379"),
 			Password: getEnv("REDIS_PASSWORD", ""),
 			DB:       redisDB,
+		},
+		Auth: AuthConfig{
+			Secret:          getEnv("AUTH_SECRET", "change-this-secret"),
+			AccessTokenTTL:  getEnv("AUTH_ACCESS_TOKEN_TTL", "15m"),
+			RefreshTokenTTL: getEnv("AUTH_REFRESH_TOKEN_TTL", "168h"),
 		},
 	}
 

@@ -3,13 +3,20 @@ package grpc
 import (
 	"context"
 	"log"
+	"strings"
 	"time"
+
+	"go-usersvc-demo/internal/auth"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
+
+type contextKey string
+
+const userIDContextKey contextKey = "userID"
 
 // LoggingInterceptor logs gRPC requests.
 func LoggingInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
@@ -21,20 +28,41 @@ func LoggingInterceptor(ctx context.Context, req interface{}, info *grpc.UnarySe
 	return resp, err
 }
 
-// AuthInterceptor is a placeholder for authentication.
-func AuthInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-	// Example: Check metadata for token
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return nil, status.Error(codes.Unauthenticated, "missing metadata")
-	}
+// NewAuthInterceptor validates metadata and attaches the authenticated user ID to context.
+func NewAuthInterceptor(tokenManager *auth.Manager) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		md, ok := metadata.FromIncomingContext(ctx)
+		if !ok {
+			return nil, status.Error(codes.Unauthenticated, "missing metadata")
+		}
 
-	token := md["authorization"]
-	if len(token) == 0 || token[0] == "" {
-		return nil, status.Error(codes.Unauthenticated, "missing token")
-	}
+		tokens := md["authorization"]
+		if len(tokens) == 0 || tokens[0] == "" {
+			return nil, status.Error(codes.Unauthenticated, "missing token")
+		}
 
-	// Validate token here
-	// For demo, just pass
-	return handler(ctx, req)
+		if !strings.HasPrefix(tokens[0], "Bearer ") {
+			return nil, status.Error(codes.Unauthenticated, "invalid token")
+		}
+
+		token := strings.TrimPrefix(tokens[0], "Bearer ")
+		userID, err := tokenManager.ValidateAccessToken(token)
+		if err != nil {
+			return nil, status.Error(codes.Unauthenticated, "invalid token")
+		}
+
+		ctx = context.WithValue(ctx, userIDContextKey, userID)
+		return handler(ctx, req)
+	}
+}
+
+// UserIDFromContext returns the authenticated user ID stored in context.
+func UserIDFromContext(ctx context.Context) (int64, bool) {
+	userID, ok := ctx.Value(userIDContextKey).(int64)
+	return userID, ok
+}
+
+// ContextWithUserID stores the authenticated user ID in the provided context.
+func ContextWithUserID(ctx context.Context, userID int64) context.Context {
+	return context.WithValue(ctx, userIDContextKey, userID)
 }

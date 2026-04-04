@@ -9,7 +9,7 @@ import (
 )
 
 // NewRouter creates and returns a configured Gin engine.
-func NewRouter(h *Handler) *gin.Engine {
+func NewRouter(h *Handler, authMiddleware gin.HandlerFunc) *gin.Engine {
 	r := gin.New() // Use gin.New() instead of gin.Default() to avoid default middlewares
 
 	// Add custom middlewares
@@ -21,9 +21,16 @@ func NewRouter(h *Handler) *gin.Engine {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
+	// Public endpoints
+	r.POST("/users", h.CreateUser)
+	r.POST("/auth/login", h.Login)
+	r.POST("/auth/refresh", h.Refresh)
+
+	// Authenticated user routes
 	users := r.Group("/users")
+	users.Use(authMiddleware)
 	{
-		users.POST("", h.CreateUser)
+		users.GET("/me", h.GetProfile)
 		users.GET("", h.ListUsers)
 		users.GET("/:id", h.GetUserByID)
 		users.PUT("/:id", h.UpdateUser)
