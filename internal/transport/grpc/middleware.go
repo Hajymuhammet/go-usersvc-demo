@@ -41,11 +41,11 @@ func NewAuthInterceptor(tokenManager *auth.Manager) grpc.UnaryServerInterceptor 
 			return nil, status.Error(codes.Unauthenticated, "missing token")
 		}
 
-		if !strings.HasPrefix(tokens[0], "Bearer ") {
-			return nil, status.Error(codes.Unauthenticated, "invalid token")
-		}
+		token := tokens[0]
 
-		token := strings.TrimPrefix(tokens[0], "Bearer ")
+		// Support both "Bearer token" and direct "token" formats
+		token = strings.TrimPrefix(token, "Bearer ")
+
 		userID, err := tokenManager.ValidateAccessToken(token)
 		if err != nil {
 			return nil, status.Error(codes.Unauthenticated, "invalid token")

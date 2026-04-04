@@ -3,11 +3,13 @@ package http
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"go-usersvc-demo/internal/auth"
+
+	"github.com/gin-gonic/gin"
 )
 
 type contextKey string
@@ -33,22 +35,32 @@ func NewAuthMiddleware(tokenManager *auth.Manager) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.AbortWithStatusJSON(401, gin.H{"error": "Unauthorized"})
+			log.Printf("[AUTH] Missing Authorization header")
+			c.AbortWithStatusJSON(401, gin.H{"error": "Unauthorized - missing token"})
 			return
 		}
 
-		if !strings.HasPrefix(authHeader, "Bearer ") {
-			c.AbortWithStatusJSON(401, gin.H{"error": "Unauthorized"})
+		token := authHeader
+
+		// Support both "Bearer token" and direct "token" formats
+		token = strings.TrimPrefix(authHeader, "Bearer ")
+
+		if token == "" {
+			log.Printf("[AUTH] Empty token")
+			c.AbortWithStatusJSON(401, gin.H{"error": "Unauthorized - empty token"})
 			return
 		}
 
-		token := strings.TrimPrefix(authHeader, "Bearer ")
+		log.Printf("[AUTH] Validating token: %s", token[:min(len(token), 30)]+"...")
+
 		userID, err := tokenManager.ValidateAccessToken(token)
 		if err != nil {
-			c.AbortWithStatusJSON(401, gin.H{"error": "Unauthorized"})
+			log.Printf("[AUTH] Token validation failed: %v", err)
+			c.AbortWithStatusJSON(401, gin.H{"error": fmt.Sprintf("Unauthorized - %s", err.Error())})
 			return
 		}
 
+		log.Printf("[AUTH] Token validated for userID: %d", userID)
 		ctx := ContextWithUserID(c.Request.Context(), userID)
 		c.Request = c.Request.WithContext(ctx)
 		c.Next()

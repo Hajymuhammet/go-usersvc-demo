@@ -153,6 +153,7 @@ func (h *Handler) Refresh(c *gin.Context) {
 // @Failure      400  {object}  map[string]string
 // @Failure      404  {object}  map[string]string
 // @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
 // @Router       /users/{id} [get]
 func (h *Handler) GetUserByID(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
@@ -184,6 +185,7 @@ func (h *Handler) GetUserByID(c *gin.Context) {
 // @Failure      401  {object}  map[string]string
 // @Failure      404  {object}  map[string]string
 // @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
 // @Router       /users/me [get]
 func (h *Handler) GetProfile(c *gin.Context) {
 	userID, ok := UserIDFromContext(c.Request.Context())
@@ -215,6 +217,7 @@ func (h *Handler) GetProfile(c *gin.Context) {
 // @Param        limit  query     int  false  "Items per page"
 // @Success      200    {object}  domain.UserList
 // @Failure      500    {object}  map[string]string
+// @Security     BearerAuth
 // @Router       /users [get]
 func (h *Handler) ListUsers(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
@@ -242,6 +245,7 @@ func (h *Handler) ListUsers(c *gin.Context) {
 // @Failure      404   {object}  map[string]string
 // @Failure      422   {object}  map[string]string
 // @Failure      500   {object}  map[string]string
+// @Security     BearerAuth
 // @Router       /users/{id} [put]
 func (h *Handler) UpdateUser(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
@@ -283,6 +287,7 @@ func (h *Handler) UpdateUser(c *gin.Context) {
 // @Failure      400  {object}  map[string]string
 // @Failure      404  {object}  map[string]string
 // @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
 // @Router       /users/{id} [delete]
 func (h *Handler) DeleteUser(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)

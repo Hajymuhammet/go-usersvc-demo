@@ -66,4 +66,4 @@ proto:
 	protoc --go_out=. --go-grpc_out=. proto/user.proto
 
 init-swagger:
-	swag init -g cmd/api/main.go -o ./docs
+	swag init -g cmd/server/main.go -o ./docs
