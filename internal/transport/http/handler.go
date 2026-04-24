@@ -1,6 +1,7 @@
 package http
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -15,13 +16,14 @@ var validate = validator.New()
 
 // Handler holds the HTTP handlers for user operations.
 type Handler struct {
-	svc     *service.UserService
-	authSvc *service.AuthService
+	svc          *service.UserService
+	authSvc      *service.AuthService
+	emailSvc     *service.EmailService
 }
 
 // NewHandler creates a new HTTP Handler.
-func NewHandler(svc *service.UserService, authSvc *service.AuthService) *Handler {
-	return &Handler{svc: svc, authSvc: authSvc}
+func NewHandler(svc *service.UserService, authSvc *service.AuthService, emailSvc *service.EmailService) *Handler {
+	return &Handler{svc: svc, authSvc: authSvc, emailSvc: emailSvc}
 }
 
 func respondError(c *gin.Context, code int, msg string) {
@@ -40,6 +42,17 @@ type refreshRequest struct {
 type tokenResponse struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
+}
+
+type sendEmailRequest struct {
+	To       string `json:"to" validate:"required,email"`
+	Template string `json:"template" validate:"required,oneof=welcome reset verification"`
+	Data     map[string]string `json:"data" validate:"required"`
+}
+
+type sendEmailResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
 }
 
 // CreateUser godoc
@@ -306,4 +319,89 @@ func (h *Handler) DeleteUser(c *gin.Context) {
 	}
 
 	c.Status(http.StatusNoContent)
+}
+
+// SendEmail godoc
+// @Summary      Send email
+// @Description  Send an email to a recipient with specified template and data
+// @Tags         email
+// @Accept       json
+// @Produce      json
+// @Param        email  body      sendEmailRequest   true  "Email request"
+// @Success      200    {object}  sendEmailResponse
+// @Failure      400    {object}  map[string]string
+// @Failure      401    {object}  map[string]string
+// @Failure      422    {object}  map[string]string
+// @Failure      500    {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /email/send [post]
+func (h *Handler) SendEmail(c *gin.Context) {
+	// Verify user is authenticated
+	userID, ok := UserIDFromContext(c.Request.Context())
+	if !ok {
+		respondError(c, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	var input sendEmailRequest
+	if err := c.ShouldBindJSON(&input); err != nil {
+		respondError(c, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if err := validate.Struct(input); err != nil {
+		respondError(c, http.StatusUnprocessableEntity, err.Error())
+		return
+	}
+
+	// Log the request
+	log.Printf("[EMAIL] Authenticated user %d sending email to %s with template %s", userID, input.To, input.Template)
+
+	// Send email based on template
+	switch input.Template {
+	case "welcome":
+		name, ok := input.Data["name"]
+		if !ok {
+			respondError(c, http.StatusBadRequest, "missing required data field: name")
+			return
+		}
+		if err := h.emailSvc.SendWelcomeEmail(c.Request.Context(), input.To, name); err != nil {
+			log.Printf("[EMAIL] Failed to send welcome email: %v", err)
+			respondError(c, http.StatusInternalServerError, "failed to send welcome email")
+			return
+		}
+
+	case "reset":
+		resetLink, ok := input.Data["reset_link"]
+		if !ok {
+			respondError(c, http.StatusBadRequest, "missing required data field: reset_link")
+			return
+		}
+		if err := h.emailSvc.SendPasswordResetEmail(c.Request.Context(), input.To, resetLink); err != nil {
+			log.Printf("[EMAIL] Failed to send reset email: %v", err)
+			respondError(c, http.StatusInternalServerError, "failed to send reset email")
+			return
+		}
+
+	case "verification":
+		verificationLink, ok := input.Data["verification_link"]
+		if !ok {
+			respondError(c, http.StatusBadRequest, "missing required data field: verification_link")
+			return
+		}
+		if err := h.emailSvc.SendVerificationEmail(c.Request.Context(), input.To, verificationLink); err != nil {
+			log.Printf("[EMAIL] Failed to send verification email: %v", err)
+			respondError(c, http.StatusInternalServerError, "failed to send verification email")
+			return
+		}
+
+	default:
+		respondError(c, http.StatusBadRequest, "unknown template type")
+		return
+	}
+
+	c.JSON(http.StatusOK, sendEmailResponse{
+		Success: true,
+		Message: "Email sent successfully",
+	})
 }

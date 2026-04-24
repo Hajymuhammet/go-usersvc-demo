@@ -37,6 +37,13 @@ func NewRouter(h *Handler, authMiddleware gin.HandlerFunc) *gin.Engine {
 		users.DELETE("/:id", h.DeleteUser)
 	}
 
+	// Authenticated email routes
+	email := r.Group("/email")
+	email.Use(authMiddleware)
+	{
+		email.POST("/send", h.SendEmail)
+	}
+
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return r

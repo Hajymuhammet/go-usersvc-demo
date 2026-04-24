@@ -72,6 +72,10 @@ func main() {
 	userCache := infraredis.NewUserCache(redisClient)
 	userSvc := service.NewUserService(userRepo, userCache)
 
+	// Initialize email service with mock provider (can be replaced with real provider)
+	emailProvider := service.NewMockEmailProvider()
+	emailSvc := service.NewEmailService(emailProvider)
+
 	tokenManager := auth.NewManager(
 		cfg.Auth.Secret,
 		parseDurationOrDefault(cfg.Auth.AccessTokenTTL, 15*time.Minute),
@@ -85,7 +89,7 @@ func main() {
 	g, ctx := errgroup.WithContext(ctx)
 
 	// 1. Start REST Server
-	httpHandler := transporthttp.NewHandler(userSvc, authSvc)
+	httpHandler := transporthttp.NewHandler(userSvc, authSvc, emailSvc)
 	router := transporthttp.NewRouter(httpHandler, transporthttp.NewAuthMiddleware(tokenManager))
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%s", cfg.Server.Port),

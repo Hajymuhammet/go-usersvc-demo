@@ -15,13 +15,19 @@ import (
 
 // UserService handles business logic for users.
 type UserService struct {
-	repo  domain.UserRepository
-	cache domain.UserCache
+	repo         domain.UserRepository
+	cache        domain.UserCache
+	emailService *EmailService
 }
 
 // NewUserService creates a new UserService.
 func NewUserService(repo domain.UserRepository, cache domain.UserCache) *UserService {
 	return &UserService{repo: repo, cache: cache}
+}
+
+// SetEmailService sets the email service for UserService.
+func (s *UserService) SetEmailService(emailService *EmailService) {
+	s.emailService = emailService
 }
 
 // CreateUser hashes the password and persists the new user.
@@ -52,6 +58,15 @@ func (s *UserService) CreateUser(ctx context.Context, input domain.CreateUserInp
 
 	// Warm the cache
 	_ = s.cache.Set(ctx, created)
+
+	// Send welcome email (non-blocking, log errors but don't fail the operation)
+	if s.emailService != nil {
+		go func() {
+			if err := s.emailService.SendWelcomeEmail(context.Background(), created.Email, created.Name); err != nil {
+				log.Printf("failed to send welcome email: %v", err)
+			}
+		}()
+	}
 
 	return created, nil
 }

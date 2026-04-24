@@ -24,10 +24,10 @@ type AuthService struct {
 }
 
 type RateLimiter struct {
-	attempts map[string]*loginAttempt
-	mu       sync.RWMutex
+	attempts    map[string]*loginAttempt
+	mu          sync.RWMutex
 	maxAttempts int
-	window     time.Duration
+	window      time.Duration
 }
 
 type loginAttempt struct {
@@ -37,9 +37,9 @@ type loginAttempt struct {
 
 func NewRateLimiter(maxAttempts int, window time.Duration) *RateLimiter {
 	return &RateLimiter{
-		attempts:   make(map[string]*loginAttempt),
+		attempts:    make(map[string]*loginAttempt),
 		maxAttempts: maxAttempts,
-		window:     window,
+		window:      window,
 	}
 }
 
@@ -71,10 +71,10 @@ func (rl *RateLimiter) Reset(key string) {
 
 func NewAuthService(repo domain.UserRepository, tokenManager *auth.Manager) *AuthService {
 	return &AuthService{
-		repo:        repo,
+		repo:         repo,
 		tokenManager: tokenManager,
-		rateLimiter: NewRateLimiter(5, 15*time.Minute), // 5 attempts per 15 minutes
-		logger:      log.New(log.Writer(), "[AUTH] ", log.LstdFlags),
+		rateLimiter:  NewRateLimiter(5, 15*time.Minute), // 5 attempts per 15 minutes
+		logger:       log.New(log.Writer(), "[AUTH] ", log.LstdFlags),
 	}
 }
 
@@ -97,7 +97,7 @@ func (s *AuthService) ValidatePassword(password string) error {
 	}
 
 	// Check for common weak passwords (basic check)
-	weakPasswords := []string{"password", "123456", "qwerty", "admin", "letmein"}
+	weakPasswords := []string{"password", "123456", "qwerty", "admin", "letmein", "password123", "12345678", "welcome"}
 	for _, weak := range weakPasswords {
 		if strings.ToLower(password) == weak {
 			return errors.New("password is too common, please choose a stronger password")
