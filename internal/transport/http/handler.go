@@ -1,11 +1,12 @@
 package http
 
 import (
-	"log"
 	"net/http"
 	"strconv"
 
 	"go-usersvc-demo/internal/domain"
+	"go-usersvc-demo/internal/pkg/httputility"
+	"go-usersvc-demo/internal/pkg/logger"
 	"go-usersvc-demo/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -24,10 +25,6 @@ type Handler struct {
 // NewHandler creates a new HTTP Handler.
 func NewHandler(svc *service.UserService, authSvc *service.AuthService, emailSvc *service.EmailService) *Handler {
 	return &Handler{svc: svc, authSvc: authSvc, emailSvc: emailSvc}
-}
-
-func respondError(c *gin.Context, code int, msg string) {
-	c.JSON(code, gin.H{"error": msg})
 }
 
 type loginRequest struct {
@@ -71,25 +68,21 @@ type sendEmailResponse struct {
 func (h *Handler) CreateUser(c *gin.Context) {
 	var input domain.CreateUserInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		respondError(c, http.StatusBadRequest, "invalid request body")
+		httputility.RespondError(c, domain.NewValidationError("invalid request body", err.Error()))
 		return
 	}
 	if err := validate.Struct(input); err != nil {
-		respondError(c, http.StatusUnprocessableEntity, err.Error())
+		httputility.RespondError(c, domain.NewValidationError("validation failed", err.Error()))
 		return
 	}
 
 	user, err := h.svc.CreateUser(c.Request.Context(), input)
 	if err != nil {
-		if err.Error() == "email already registered" {
-			respondError(c, http.StatusConflict, err.Error())
-			return
-		}
-		respondError(c, http.StatusInternalServerError, "could not create user")
+		httputility.RespondError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusCreated, user)
+	httputility.RespondSuccess(c, http.StatusCreated, user)
 }
 
 // Login godoc
@@ -107,21 +100,21 @@ func (h *Handler) CreateUser(c *gin.Context) {
 func (h *Handler) Login(c *gin.Context) {
 	var input loginRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
-		respondError(c, http.StatusBadRequest, "invalid request body")
+		httputility.RespondError(c, domain.NewValidationError("invalid request body", err.Error()))
 		return
 	}
 	if err := validate.Struct(input); err != nil {
-		respondError(c, http.StatusUnprocessableEntity, err.Error())
+		httputility.RespondError(c, domain.NewValidationError("validation failed", err.Error()))
 		return
 	}
 
 	accessToken, refreshToken, _, err := h.authSvc.Login(c.Request.Context(), input.Email, input.Password)
 	if err != nil {
-		respondError(c, http.StatusUnauthorized, "invalid credentials")
+		httputility.RespondError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, tokenResponse{AccessToken: accessToken, RefreshToken: refreshToken})
+	httputility.RespondSuccess(c, http.StatusOK, tokenResponse{AccessToken: accessToken, RefreshToken: refreshToken})
 }
 
 // Refresh godoc
@@ -139,21 +132,21 @@ func (h *Handler) Login(c *gin.Context) {
 func (h *Handler) Refresh(c *gin.Context) {
 	var input refreshRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
-		respondError(c, http.StatusBadRequest, "invalid request body")
+		httputility.RespondError(c, domain.NewValidationError("invalid request body", err.Error()))
 		return
 	}
 	if err := validate.Struct(input); err != nil {
-		respondError(c, http.StatusUnprocessableEntity, err.Error())
+		httputility.RespondError(c, domain.NewValidationError("validation failed", err.Error()))
 		return
 	}
 
 	accessToken, refreshToken, err := h.authSvc.Refresh(c.Request.Context(), input.RefreshToken)
 	if err != nil {
-		respondError(c, http.StatusUnauthorized, "invalid refresh token")
+		httputility.RespondError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, tokenResponse{AccessToken: accessToken, RefreshToken: refreshToken})
+	httputility.RespondSuccess(c, http.StatusOK, tokenResponse{AccessToken: accessToken, RefreshToken: refreshToken})
 }
 
 // GetUserByID godoc
@@ -171,22 +164,18 @@ func (h *Handler) Refresh(c *gin.Context) {
 func (h *Handler) GetUserByID(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		respondError(c, http.StatusBadRequest, "invalid user id")
+		httputility.RespondError(c, domain.NewValidationError("invalid user id", ""))
 		return
 	}
 
 	user, err := h.svc.GetUserByID(c.Request.Context(), id)
 	if err != nil {
-		if err.Error() == "user not found" {
-			respondError(c, http.StatusNotFound, err.Error())
-			return
-		}
-		respondError(c, http.StatusInternalServerError, "could not fetch user")
+		httputility.RespondError(c, err)
 		return
 	}
 	user.Password = "" // never expose password hash
 
-	c.JSON(http.StatusOK, user)
+	httputility.RespondSuccess(c, http.StatusOK, user)
 }
 
 // GetProfile godoc
@@ -203,22 +192,18 @@ func (h *Handler) GetUserByID(c *gin.Context) {
 func (h *Handler) GetProfile(c *gin.Context) {
 	userID, ok := UserIDFromContext(c.Request.Context())
 	if !ok {
-		respondError(c, http.StatusUnauthorized, "unauthorized")
+		httputility.RespondError(c, domain.NewUnauthorizedError("unauthorized"))
 		return
 	}
 
 	user, err := h.svc.GetUserByID(c.Request.Context(), userID)
 	if err != nil {
-		if err.Error() == "user not found" {
-			respondError(c, http.StatusNotFound, err.Error())
-			return
-		}
-		respondError(c, http.StatusInternalServerError, "could not fetch profile")
+		httputility.RespondError(c, err)
 		return
 	}
 	user.Password = ""
 
-	c.JSON(http.StatusOK, user)
+	httputility.RespondSuccess(c, http.StatusOK, user)
 }
 
 // ListUsers godoc
@@ -238,11 +223,11 @@ func (h *Handler) ListUsers(c *gin.Context) {
 
 	result, err := h.svc.ListUsers(c.Request.Context(), domain.ListFilter{Page: page, Limit: limit})
 	if err != nil {
-		respondError(c, http.StatusInternalServerError, "could not list users")
+		httputility.RespondError(c, domain.NewInternalError("failed to list users", err))
 		return
 	}
 
-	c.JSON(http.StatusOK, result)
+	httputility.RespondSuccess(c, http.StatusOK, result)
 }
 
 // UpdateUser godoc
@@ -263,32 +248,28 @@ func (h *Handler) ListUsers(c *gin.Context) {
 func (h *Handler) UpdateUser(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		respondError(c, http.StatusBadRequest, "invalid user id")
+		httputility.RespondError(c, domain.NewValidationError("invalid user id", ""))
 		return
 	}
 
 	var input domain.UpdateUserInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		respondError(c, http.StatusBadRequest, "invalid request body")
+		httputility.RespondError(c, domain.NewValidationError("invalid request body", err.Error()))
 		return
 	}
 	if err := validate.Struct(input); err != nil {
-		respondError(c, http.StatusUnprocessableEntity, err.Error())
+		httputility.RespondError(c, domain.NewValidationError("validation failed", err.Error()))
 		return
 	}
 
 	user, err := h.svc.UpdateUser(c.Request.Context(), id, input)
 	if err != nil {
-		if err.Error() == "user not found" {
-			respondError(c, http.StatusNotFound, err.Error())
-			return
-		}
-		respondError(c, http.StatusInternalServerError, "could not update user")
+		httputility.RespondError(c, err)
 		return
 	}
 	user.Password = ""
 
-	c.JSON(http.StatusOK, user)
+	httputility.RespondSuccess(c, http.StatusOK, user)
 }
 
 // DeleteUser godoc
@@ -305,16 +286,12 @@ func (h *Handler) UpdateUser(c *gin.Context) {
 func (h *Handler) DeleteUser(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		respondError(c, http.StatusBadRequest, "invalid user id")
+		httputility.RespondError(c, domain.NewValidationError("invalid user id", ""))
 		return
 	}
 
 	if err := h.svc.DeleteUser(c.Request.Context(), id); err != nil {
-		if err.Error() == "user not found" {
-			respondError(c, http.StatusNotFound, err.Error())
-			return
-		}
-		respondError(c, http.StatusInternalServerError, "could not delete user")
+		httputility.RespondError(c, err)
 		return
 	}
 
@@ -339,68 +316,72 @@ func (h *Handler) SendEmail(c *gin.Context) {
 	// Verify user is authenticated
 	userID, ok := UserIDFromContext(c.Request.Context())
 	if !ok {
-		respondError(c, http.StatusUnauthorized, "unauthorized")
+		httputility.RespondError(c, domain.NewUnauthorizedError("unauthorized"))
 		return
 	}
 
 	var input sendEmailRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
-		respondError(c, http.StatusBadRequest, "invalid request body")
+		httputility.RespondError(c, domain.NewValidationError("invalid request body", err.Error()))
 		return
 	}
 
 	if err := validate.Struct(input); err != nil {
-		respondError(c, http.StatusUnprocessableEntity, err.Error())
+		httputility.RespondError(c, domain.NewValidationError("validation failed", err.Error()))
 		return
 	}
 
 	// Log the request
-	log.Printf("[EMAIL] Authenticated user %d sending email to %s with template %s", userID, input.To, input.Template)
+	logger.Get().Info("email request",
+		"user_id", userID,
+		"recipient", input.To,
+		"template", input.Template,
+	)
 
 	// Send email based on template
 	switch input.Template {
 	case "welcome":
 		name, ok := input.Data["name"]
 		if !ok {
-			respondError(c, http.StatusBadRequest, "missing required data field: name")
+			httputility.RespondError(c, domain.NewValidationError("missing required data", "name"))
 			return
 		}
 		if err := h.emailSvc.SendWelcomeEmail(c.Request.Context(), input.To, name); err != nil {
-			log.Printf("[EMAIL] Failed to send welcome email: %v", err)
-			respondError(c, http.StatusInternalServerError, "failed to send welcome email")
+			logger.Get().Error("failed to send welcome email", "error", err)
+			httputility.RespondError(c, domain.NewInternalError("failed to send email", err))
 			return
 		}
 
 	case "reset":
 		resetLink, ok := input.Data["reset_link"]
 		if !ok {
-			respondError(c, http.StatusBadRequest, "missing required data field: reset_link")
+			httputility.RespondError(c, domain.NewValidationError("missing required data", "reset_link"))
 			return
 		}
 		if err := h.emailSvc.SendPasswordResetEmail(c.Request.Context(), input.To, resetLink); err != nil {
-			log.Printf("[EMAIL] Failed to send reset email: %v", err)
-			respondError(c, http.StatusInternalServerError, "failed to send reset email")
+			logger.Get().Error("failed to send reset email", "error", err)
+			httputility.RespondError(c, domain.NewInternalError("failed to send email", err))
 			return
 		}
 
 	case "verification":
 		verificationLink, ok := input.Data["verification_link"]
 		if !ok {
-			respondError(c, http.StatusBadRequest, "missing required data field: verification_link")
+			httputility.RespondError(c, domain.NewValidationError("missing required data", "verification_link"))
 			return
 		}
 		if err := h.emailSvc.SendVerificationEmail(c.Request.Context(), input.To, verificationLink); err != nil {
-			log.Printf("[EMAIL] Failed to send verification email: %v", err)
-			respondError(c, http.StatusInternalServerError, "failed to send verification email")
+			logger.Get().Error("failed to send verification email", "error", err)
+			httputility.RespondError(c, domain.NewInternalError("failed to send email", err))
 			return
 		}
 
 	default:
-		respondError(c, http.StatusBadRequest, "unknown template type")
+		httputility.RespondError(c, domain.NewValidationError("unknown template type", input.Template))
 		return
 	}
 
-	c.JSON(http.StatusOK, sendEmailResponse{
+	httputility.RespondSuccess(c, http.StatusOK, sendEmailResponse{
 		Success: true,
 		Message: "Email sent successfully",
 	})

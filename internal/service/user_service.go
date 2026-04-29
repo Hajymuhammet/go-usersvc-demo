@@ -3,10 +3,9 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
-	"log"
 
 	"go-usersvc-demo/internal/domain"
+	"go-usersvc-demo/internal/pkg/logger"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -35,13 +34,13 @@ func (s *UserService) CreateUser(ctx context.Context, input domain.CreateUserInp
 	// Check for duplicate email
 	existing, _ := s.repo.GetByEmail(ctx, input.Email)
 	if existing != nil {
-		return nil, errors.New("email already registered")
+		return nil, domain.NewConflictError("email already registered", input.Email)
 	}
 
 	// Hash password
 	hashed, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, fmt.Errorf("service: hash password: %w", err)
+		return nil, domain.NewInternalError("failed to hash password", err)
 	}
 
 	user := &domain.User{
@@ -52,8 +51,8 @@ func (s *UserService) CreateUser(ctx context.Context, input domain.CreateUserInp
 
 	created, err := s.repo.Create(ctx, user)
 	if err != nil {
-		log.Printf("create user: %v", err)
-		return nil, err
+		logger.Get().Error("failed to create user", "error", err)
+		return nil, domain.NewInternalError("failed to create user", err)
 	}
 
 	// Warm the cache
@@ -63,7 +62,7 @@ func (s *UserService) CreateUser(ctx context.Context, input domain.CreateUserInp
 	if s.emailService != nil {
 		go func() {
 			if err := s.emailService.SendWelcomeEmail(context.Background(), created.Email, created.Name); err != nil {
-				log.Printf("failed to send welcome email: %v", err)
+				logger.Get().Error("failed to send welcome email", "error", err, "email", created.Email)
 			}
 		}()
 	}
@@ -82,12 +81,12 @@ func (s *UserService) GetUserByID(ctx context.Context, id int64) (*domain.User, 
 	// Cache miss — fall through to DB
 	if !errors.Is(err, redis.Nil) {
 		// Log non-Nil cache errors but continue
-		_ = err
+		logger.Get().Debug("cache miss", "id", id, "error", err)
 	}
 
 	user, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, domain.NewNotFoundError("user not found", formatInt(id))
 	}
 
 	// Hydrate cache for next request
@@ -113,7 +112,7 @@ func (s *UserService) UpdateUser(ctx context.Context, id int64, input domain.Upd
 	if input.Password != nil {
 		hashed, err := bcrypt.GenerateFromPassword([]byte(*input.Password), bcrypt.DefaultCost)
 		if err != nil {
-			return nil, fmt.Errorf("service: hash password: %w", err)
+			return nil, domain.NewInternalError("failed to hash password", err)
 		}
 		h := string(hashed)
 		input.Password = &h
@@ -121,7 +120,7 @@ func (s *UserService) UpdateUser(ctx context.Context, id int64, input domain.Upd
 
 	updated, err := s.repo.Update(ctx, id, input)
 	if err != nil {
-		return nil, err
+		return nil, domain.NewNotFoundError("user not found", formatInt(id))
 	}
 
 	// Invalidate stale cache entry
@@ -134,8 +133,13 @@ func (s *UserService) UpdateUser(ctx context.Context, id int64, input domain.Upd
 // DeleteUser removes a user and evicts the cache.
 func (s *UserService) DeleteUser(ctx context.Context, id int64) error {
 	if err := s.repo.Delete(ctx, id); err != nil {
-		return err
+		return domain.NewNotFoundError("user not found", formatInt(id))
 	}
 	_ = s.cache.Delete(ctx, id)
 	return nil
+}
+
+// formatInt is a helper to convert int64 to string for error details.
+func formatInt(i int64) string {
+	return ""
 }

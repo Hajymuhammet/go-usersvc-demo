@@ -14,6 +14,7 @@ type Config struct {
 	Database DatabaseConfig
 	Redis    RedisConfig
 	Auth     AuthConfig
+	AppEnv   string // dev, staging, prod
 }
 
 type ServerConfig struct {
@@ -56,8 +57,20 @@ func Load() (*Config, error) {
 	_ = godotenv.Load()
 
 	redisDB, _ := strconv.Atoi(getEnv("REDIS_DB", "0"))
+	appEnv := getEnv("APP_ENV", "development")
+	authSecret := getEnv("AUTH_SECRET", "")
+
+	// Validate required configuration
+	if authSecret == "" {
+		return nil, fmt.Errorf("AUTH_SECRET environment variable must be set and non-empty")
+	}
+
+	if authSecret == "change-this-secret" {
+		return nil, fmt.Errorf("AUTH_SECRET must be changed from the default value. Generate a strong secret using: openssl rand -base64 32")
+	}
 
 	cfg := &Config{
+		AppEnv: appEnv,
 		Server: ServerConfig{
 			Port:     getEnv("SERVER_PORT", "8080"),
 			GRPCPort: getEnv("GRPC_PORT", "50051"),
@@ -76,7 +89,7 @@ func Load() (*Config, error) {
 			DB:       redisDB,
 		},
 		Auth: AuthConfig{
-			Secret:          getEnv("AUTH_SECRET", "change-this-secret"),
+			Secret:          authSecret,
 			AccessTokenTTL:  getEnv("AUTH_ACCESS_TOKEN_TTL", "15m"),
 			RefreshTokenTTL: getEnv("AUTH_REFRESH_TOKEN_TTL", "168h"),
 		},

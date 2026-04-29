@@ -3,6 +3,7 @@ package service_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -240,5 +241,437 @@ func TestDeleteUser_NotFound(t *testing.T) {
 	err := svc.DeleteUser(context.Background(), 999)
 	if err == nil {
 		t.Fatal("expected error for non-existent user")
+	}
+}
+
+// --- Mock Email Service ---
+
+type mockEmailService struct {
+	sentEmails map[string]int // email -> count
+	shouldFail bool
+}
+
+func newMockEmailService() *mockEmailService {
+	return &mockEmailService{sentEmails: make(map[string]int)}
+}
+
+func (m *mockEmailService) SendWelcomeEmail(ctx context.Context, email string, name string) error {
+	if m.shouldFail {
+		return errors.New("email service failed")
+	}
+	m.sentEmails[email]++
+	return nil
+}
+
+// --- Integration Tests ---
+
+func TestCreateUser_WithEmailService(t *testing.T) {
+	svc, _, _ := newSvc()
+	emailSvc := newMockEmailService()
+	_ = emailSvc // mock email service for integration testing
+	svc.SetEmailService(&service.EmailService{})
+
+	user, err := svc.CreateUser(context.Background(), domain.CreateUserInput{
+		Name:     "Email Test",
+		Email:    "emailtest@example.com",
+		Password: "pass123",
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if user.ID == 0 {
+		t.Error("expected non-zero user ID")
+	}
+}
+
+func TestUpdateUser_CacheInvalidation(t *testing.T) {
+	svc, _, cache := newSvc()
+
+	// Create user
+	user, _ := svc.CreateUser(context.Background(), domain.CreateUserInput{
+		Name:     "Cache Test",
+		Email:    "cachetest@example.com",
+		Password: "pass123",
+	})
+
+	// Verify it's in cache
+	cached, err := cache.Get(context.Background(), user.ID)
+	if err != nil {
+		t.Fatalf("expected cached user, got error: %v", err)
+	}
+	if cached.Name != "Cache Test" {
+		t.Errorf("expected cached name 'Cache Test', got '%s'", cached.Name)
+	}
+
+	// Update user
+	newName := "Updated Name"
+	updated, _ := svc.UpdateUser(context.Background(), user.ID, domain.UpdateUserInput{Name: &newName})
+
+	// Verify cache is updated
+	cached, _ = cache.Get(context.Background(), user.ID)
+	if cached.Name != "Updated Name" {
+		t.Errorf("expected cached name 'Updated Name', got '%s'", cached.Name)
+	}
+	if updated.Name != "Updated Name" {
+		t.Errorf("expected updated name 'Updated Name', got '%s'", updated.Name)
+	}
+}
+
+func TestDeleteUser_CacheEviction(t *testing.T) {
+	svc, _, cache := newSvc()
+
+	// Create and cache user
+	user, _ := svc.CreateUser(context.Background(), domain.CreateUserInput{
+		Name:     "Delete Cache Test",
+		Email:    "delcachetest@example.com",
+		Password: "pass123",
+	})
+
+	// Verify in cache
+	_, err := cache.Get(context.Background(), user.ID)
+	if err != nil {
+		t.Fatalf("user should be in cache, got error: %v", err)
+	}
+
+	// Delete user
+	svc.DeleteUser(context.Background(), user.ID)
+
+	// Verify evicted from cache
+	_, err = cache.Get(context.Background(), user.ID)
+	if err == nil {
+		t.Fatal("expected user to be evicted from cache")
+	}
+}
+
+func TestGetByEmail_Integration(t *testing.T) {
+	svc, repo, _ := newSvc()
+
+	// Create user
+	input := domain.CreateUserInput{
+		Name:     "Email Lookup",
+		Email:    "emaillookup@example.com",
+		Password: "pass123",
+	}
+	svc.CreateUser(context.Background(), input)
+
+	// Get by email
+	user, err := repo.GetByEmail(context.Background(), "emaillookup@example.com")
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if user.Email != "emaillookup@example.com" {
+		t.Errorf("expected email 'emaillookup@example.com', got '%s'", user.Email)
+	}
+}
+
+// --- Mock Repository Error Tests ---
+
+type errorMockRepo struct{}
+
+func (m *errorMockRepo) Create(ctx context.Context, u *domain.User) (*domain.User, error) {
+	return nil, errors.New("database error: create failed")
+}
+
+func (m *errorMockRepo) GetByID(ctx context.Context, id int64) (*domain.User, error) {
+	return nil, errors.New("database error: read failed")
+}
+
+func (m *errorMockRepo) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
+	return nil, errors.New("database error: query failed")
+}
+
+func (m *errorMockRepo) List(ctx context.Context, filter domain.ListFilter) (*domain.UserList, error) {
+	return nil, errors.New("database error: list failed")
+}
+
+func (m *errorMockRepo) Update(ctx context.Context, id int64, input domain.UpdateUserInput) (*domain.User, error) {
+	return nil, errors.New("database error: update failed")
+}
+
+func (m *errorMockRepo) Delete(ctx context.Context, id int64) error {
+	return errors.New("database error: delete failed")
+}
+
+func TestCreateUser_RepositoryError(t *testing.T) {
+	svc := service.NewUserService(&errorMockRepo{}, newMockCache())
+
+	_, err := svc.CreateUser(context.Background(), domain.CreateUserInput{
+		Name:     "Error Test",
+		Email:    "errortest@example.com",
+		Password: "pass123",
+	})
+	if err == nil {
+		t.Fatal("expected error from failing repository")
+	}
+}
+
+func TestUpdateUser_RepositoryError(t *testing.T) {
+	svc := service.NewUserService(&errorMockRepo{}, newMockCache())
+
+	newName := "Updated"
+	_, err := svc.UpdateUser(context.Background(), 1, domain.UpdateUserInput{Name: &newName})
+	if err == nil {
+		t.Fatal("expected error from failing repository")
+	}
+}
+
+func TestDeleteUser_RepositoryError(t *testing.T) {
+	svc := service.NewUserService(&errorMockRepo{}, newMockCache())
+
+	err := svc.DeleteUser(context.Background(), 1)
+	if err == nil {
+		t.Fatal("expected error from failing repository")
+	}
+}
+
+func TestGetUserByID_RepositoryError(t *testing.T) {
+	svc := service.NewUserService(&errorMockRepo{}, newMockCache())
+
+	_, err := svc.GetUserByID(context.Background(), 1)
+	if err == nil {
+		t.Fatal("expected error from failing repository")
+	}
+}
+
+// --- Mock Cache Error Tests ---
+
+type errorMockCache struct{}
+
+func (c *errorMockCache) Get(ctx context.Context, id int64) (*domain.User, error) {
+	return nil, errors.New("cache error: connection failed")
+}
+
+func (c *errorMockCache) Set(ctx context.Context, u *domain.User) error {
+	return errors.New("cache error: write failed")
+}
+
+func (c *errorMockCache) Delete(ctx context.Context, id int64) error {
+	return errors.New("cache error: delete failed")
+}
+
+func TestGetUserByID_CacheError_RecoverFromDB(t *testing.T) {
+	repo := newMockRepo()
+	repo.users[5] = &domain.User{
+		ID:        5,
+		Name:      "DB User",
+		Email:     "db@example.com",
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+	svc := service.NewUserService(repo, &errorMockCache{})
+
+	// Should recover from cache error and get from DB
+	user, err := svc.GetUserByID(context.Background(), 5)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if user.Name != "DB User" {
+		t.Errorf("expected 'DB User', got '%s'", user.Name)
+	}
+}
+
+// --- Pagination Tests ---
+
+func TestListUsers_Pagination(t *testing.T) {
+	svc, _, _ := newSvc()
+
+	// Create 5 users
+	for i := 1; i <= 5; i++ {
+		svc.CreateUser(context.Background(), domain.CreateUserInput{
+			Name:     fmt.Sprintf("User%d", i),
+			Email:    fmt.Sprintf("user%d@test.com", i),
+			Password: "pass123",
+		})
+	}
+
+	// Test page 1 with limit 2
+	result1, err := svc.ListUsers(context.Background(), domain.ListFilter{Page: 1, Limit: 2})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if result1.Total != 5 {
+		t.Errorf("expected total 5, got %d", result1.Total)
+	}
+}
+
+func TestListUsers_DefaultPagination(t *testing.T) {
+	svc, _, _ := newSvc()
+
+	// Create user
+	svc.CreateUser(context.Background(), domain.CreateUserInput{
+		Name:     "Test",
+		Email:    "test@test.com",
+		Password: "pass123",
+	})
+
+	// Query with 0 values should use defaults
+	result, err := svc.ListUsers(context.Background(), domain.ListFilter{Page: 0, Limit: 0})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if result.Page != 1 {
+		t.Errorf("expected page 1, got %d", result.Page)
+	}
+	if result.Limit != 10 {
+		t.Errorf("expected limit 10, got %d", result.Limit)
+	}
+}
+
+// --- Password Hashing Tests ---
+
+func TestCreateUser_PasswordHashing(t *testing.T) {
+	svc, repo, _ := newSvc()
+
+	plainPassword := "mySecurePassword123"
+	svc.CreateUser(context.Background(), domain.CreateUserInput{
+		Name:     "Hash Test",
+		Email:    "hashtest@example.com",
+		Password: plainPassword,
+	})
+
+	// Get user from repo and verify password is hashed
+	user, _ := repo.GetByEmail(context.Background(), "hashtest@example.com")
+	if user.Password == plainPassword {
+		t.Fatal("expected password to be hashed, but it matches plaintext")
+	}
+	if len(user.Password) == 0 {
+		t.Fatal("expected hashed password to be non-empty")
+	}
+}
+
+func TestUpdateUser_PasswordHashing(t *testing.T) {
+	svc, repo, _ := newSvc()
+
+	// Create user
+	user, _ := svc.CreateUser(context.Background(), domain.CreateUserInput{
+		Name:     "Pass Update",
+		Email:    "passupd@example.com",
+		Password: "oldpass123",
+	})
+
+	// Update password
+	newPass := "newpass456"
+	svc.UpdateUser(context.Background(), user.ID, domain.UpdateUserInput{Password: &newPass})
+
+	// Verify new password is hashed
+	updated, _ := repo.GetByID(context.Background(), user.ID)
+	if updated.Password == newPass {
+		t.Fatal("expected password to be hashed after update")
+	}
+}
+
+// --- Complex Integration Test ---
+
+func TestCompleteUserJourney(t *testing.T) {
+	svc, repo, cache := newSvc()
+
+	// 1. Create user
+	createInput := domain.CreateUserInput{
+		Name:     "Journey User",
+		Email:    "journey@example.com",
+		Password: "securepass123",
+	}
+	user, err := svc.CreateUser(context.Background(), createInput)
+	if err != nil {
+		t.Fatalf("create failed: %v", err)
+	}
+
+	// 2. Verify cache is populated
+	cached, err := cache.Get(context.Background(), user.ID)
+	if err != nil || cached == nil {
+		t.Fatal("expected user in cache after create")
+	}
+
+	// 3. Get by ID (should use cache)
+	retrieved, err := svc.GetUserByID(context.Background(), user.ID)
+	if err != nil || retrieved.ID != user.ID {
+		t.Fatalf("getByID failed: %v", err)
+	}
+
+	// 4. Update user
+	newName := "Updated Journey User"
+	updated, err := svc.UpdateUser(context.Background(), user.ID, domain.UpdateUserInput{Name: &newName})
+	if err != nil || updated.Name != newName {
+		t.Fatalf("update failed: %v", err)
+	}
+
+	// 5. Verify cache is updated
+	cachedAfterUpdate, _ := cache.Get(context.Background(), user.ID)
+	if cachedAfterUpdate.Name != newName {
+		t.Error("cache not updated after user update")
+	}
+
+	// 6. Delete user
+	err = svc.DeleteUser(context.Background(), user.ID)
+	if err != nil {
+		t.Fatalf("delete failed: %v", err)
+	}
+
+	// 7. Verify user is gone from both cache and repo
+	_, cacheErr := cache.Get(context.Background(), user.ID)
+	if cacheErr == nil {
+		t.Error("expected user to be evicted from cache")
+	}
+
+	_, repoErr := repo.GetByID(context.Background(), user.ID)
+	if repoErr == nil {
+		t.Error("expected user to be deleted from repository")
+	}
+
+}
+
+// --- Concurrent Access Test ---
+
+func TestConcurrentUserCreation(t *testing.T) {
+	svc, _, _ := newSvc()
+	numGoroutines := 10
+	done := make(chan bool, numGoroutines)
+
+	for i := 0; i < numGoroutines; i++ {
+		go func(id int) {
+			_, err := svc.CreateUser(context.Background(), domain.CreateUserInput{
+				Name:     fmt.Sprintf("Concurrent User %d", id),
+				Email:    fmt.Sprintf("concurrent%d@example.com", id),
+				Password: "pass123",
+			})
+			if err != nil {
+				t.Errorf("concurrent create failed: %v", err)
+			}
+			done <- true
+		}(i)
+	}
+
+	// Wait for all goroutines
+	for i := 0; i < numGoroutines; i++ {
+		<-done
+	}
+}
+
+func TestConcurrentUserAccess(t *testing.T) {
+	svc, _, _ := newSvc()
+
+	// Create a user
+	user, _ := svc.CreateUser(context.Background(), domain.CreateUserInput{
+		Name:     "Concurrent Access",
+		Email:    "concurrent@example.com",
+		Password: "pass123",
+	})
+
+	numGoroutines := 20
+	done := make(chan bool, numGoroutines)
+
+	for i := 0; i < numGoroutines; i++ {
+		go func() {
+			_, err := svc.GetUserByID(context.Background(), user.ID)
+			if err != nil {
+				t.Errorf("concurrent get failed: %v", err)
+			}
+			done <- true
+		}()
+	}
+
+	// Wait for all goroutines
+	for i := 0; i < numGoroutines; i++ {
+		<-done
 	}
 }

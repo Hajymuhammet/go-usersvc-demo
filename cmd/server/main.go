@@ -15,6 +15,7 @@ import (
 	"go-usersvc-demo/internal/config"
 	"go-usersvc-demo/internal/infrastructure/postgres"
 	infraredis "go-usersvc-demo/internal/infrastructure/redis"
+	"go-usersvc-demo/internal/pkg/logger"
 	"go-usersvc-demo/internal/service"
 	transportgrpc "go-usersvc-demo/internal/transport/grpc"
 	transporthttp "go-usersvc-demo/internal/transport/http"
@@ -48,24 +49,37 @@ import (
 func main() {
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatalf("config: %v", err)
+		log.Fatalf("config error: %v", err)
 	}
+
+	// Initialize logger
+	isDev := cfg.AppEnv == "development"
+	logger.Initialize(isDev)
+	log := logger.Get()
+
+	log.Info("starting application",
+		"env", cfg.AppEnv,
+		"port", cfg.Server.Port,
+		"grpc_port", cfg.Server.GRPCPort,
+	)
 
 	// Connect to PostgreSQL
 	db, err := postgres.NewPool(cfg.Database.DSN())
 	if err != nil {
-		log.Fatalf("database: %v", err)
+		log.Error("failed to connect to postgres", "error", err)
+		os.Exit(1)
 	}
 	defer db.Close()
-	log.Println("✅ Connected to PostgreSQL")
+	log.Info("connected to postgres")
 
 	// Connect to Redis
 	redisClient, err := infraredis.NewClient(cfg.Redis.Addr, cfg.Redis.Password, cfg.Redis.DB)
 	if err != nil {
-		log.Fatalf("redis: %v", err)
+		log.Error("failed to connect to redis", "error", err)
+		os.Exit(1)
 	}
 	defer redisClient.Close()
-	log.Println("✅ Connected to Redis")
+	log.Info("connected to redis")
 
 	// Wire dependencies
 	userRepo := postgres.NewUserRepo(db)
@@ -97,7 +111,7 @@ func main() {
 	}
 
 	g.Go(func() error {
-		log.Printf("🚀 REST server listening on %s", httpServer.Addr)
+		log.Info("rest server started", "addr", httpServer.Addr)
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			return fmt.Errorf("http server: %w", err)
 		}
@@ -120,7 +134,7 @@ func main() {
 		if err != nil {
 			return fmt.Errorf("grpc listen: %w", err)
 		}
-		log.Printf("⚡ gRPC server listening on %s", addr)
+		log.Info("grpc server started", "addr", addr)
 		if err := grpcServer.Serve(lis); err != nil {
 			return fmt.Errorf("grpc serve: %w", err)
 		}
@@ -130,13 +144,13 @@ func main() {
 	// 3. Graceful Shutdown
 	g.Go(func() error {
 		<-ctx.Done()
-		log.Println("Shutting down servers...")
+		log.Info("shutdown signal received, gracefully shutting down servers")
 
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
 		if err := httpServer.Shutdown(shutdownCtx); err != nil {
-			log.Printf("HTTP shutdown error: %v", err)
+			log.Error("http server shutdown error", "error", err)
 		}
 		grpcServer.GracefulStop()
 
@@ -144,9 +158,10 @@ func main() {
 	})
 
 	if err := g.Wait(); err != nil {
-		log.Fatalf("service stopped with error: %v", err)
+		log.Error("service error", "error", err)
+		os.Exit(1)
 	}
-	log.Println("Service exited status ok")
+	log.Info("service stopped gracefully")
 }
 
 func parseDurationOrDefault(value string, fallback time.Duration) time.Duration {

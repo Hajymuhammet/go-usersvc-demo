@@ -13,8 +13,10 @@ func NewRouter(h *Handler, authMiddleware gin.HandlerFunc) *gin.Engine {
 	r := gin.New() // Use gin.New() instead of gin.Default() to avoid default middlewares
 
 	// Add custom middlewares
-	r.Use(LoggingMiddleware())
-	r.Use(gin.Recovery()) // Keep recovery
+	r.Use(RequestIDMiddleware())
+	r.Use(RequestLoggingMiddleware())
+	r.Use(CORSMiddleware())
+	r.Use(RecoveryMiddleware())
 
 	// Health check
 	r.GET("/health", func(c *gin.Context) {
