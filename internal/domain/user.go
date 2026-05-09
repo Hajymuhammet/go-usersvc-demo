@@ -59,3 +59,8 @@ type UserCache interface {
 	Set(ctx context.Context, user *User) error
 	Delete(ctx context.Context, id int64) error
 }
+
+// EmailService defines the email sending contract.
+type EmailService interface {
+	SendWelcomeEmail(ctx context.Context, email string, name string) error
+}

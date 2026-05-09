@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"go-usersvc-demo/internal/domain"
 	"go-usersvc-demo/internal/pkg/logger"
@@ -12,11 +13,10 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// UserService handles business logic for users.
 type UserService struct {
 	repo         domain.UserRepository
 	cache        domain.UserCache
-	emailService *EmailService
+	emailService domain.EmailService
 }
 
 // NewUserService creates a new UserService.
@@ -24,8 +24,8 @@ func NewUserService(repo domain.UserRepository, cache domain.UserCache) *UserSer
 	return &UserService{repo: repo, cache: cache}
 }
 
-// SetEmailService sets the email service for UserService.
-func (s *UserService) SetEmailService(emailService *EmailService) {
+// SetEmailService sets the email service for the user service.
+func (s *UserService) SetEmailService(emailService domain.EmailService) {
 	s.emailService = emailService
 }
 
@@ -58,13 +58,9 @@ func (s *UserService) CreateUser(ctx context.Context, input domain.CreateUserInp
 	// Warm the cache
 	_ = s.cache.Set(ctx, created)
 
-	// Send welcome email (non-blocking, log errors but don't fail the operation)
+	// Send welcome email if email service is configured
 	if s.emailService != nil {
-		go func() {
-			if err := s.emailService.SendWelcomeEmail(context.Background(), created.Email, created.Name); err != nil {
-				logger.Get().Error("failed to send welcome email", "error", err, "email", created.Email)
-			}
-		}()
+		_ = s.emailService.SendWelcomeEmail(ctx, created.Email, created.Name)
 	}
 
 	return created, nil
@@ -141,5 +137,5 @@ func (s *UserService) DeleteUser(ctx context.Context, id int64) error {
 
 // formatInt is a helper to convert int64 to string for error details.
 func formatInt(i int64) string {
-	return ""
+	return fmt.Sprintf("%d", i)
 }

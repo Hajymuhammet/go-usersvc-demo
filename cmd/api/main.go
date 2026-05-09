@@ -9,6 +9,7 @@ import (
 	"go-usersvc-demo/internal/config"
 	"go-usersvc-demo/internal/infrastructure/postgres"
 	infraredis "go-usersvc-demo/internal/infrastructure/redis"
+	"go-usersvc-demo/internal/pkg/ratelimit"
 	"go-usersvc-demo/internal/service"
 	transporthttp "go-usersvc-demo/internal/transport/http"
 )
@@ -51,9 +52,21 @@ func main() {
 	)
 	authSvc := service.NewAuthService(userRepo, tokenManager)
 
+	// Initialize rate limiters
+	// Public endpoints: 100 requests/sec per IP, burst of 10
+	publicRateLimiter := ratelimit.NewLimiter(100, 10)
+	// Authenticated endpoints: 50 requests/sec per user, burst of 5
+	authRateLimiter := ratelimit.NewLimiter(50, 5)
+	log.Println("✅ Rate limiters initialized")
+
 	// Setup router and start server
 	handler := transporthttp.NewHandler(userSvc, authSvc, emailSvc)
-	router := transporthttp.NewRouter(handler, transporthttp.NewAuthMiddleware(tokenManager))
+	router := transporthttp.NewRouter(
+		handler,
+		transporthttp.NewAuthMiddleware(tokenManager),
+		publicRateLimiter,
+		authRateLimiter,
+	)
 
 	addr := fmt.Sprintf(":%s", cfg.Server.Port)
 	log.Printf("🚀 REST server listening on %s", addr)

@@ -284,6 +284,27 @@ func TestCreateUser_WithEmailService(t *testing.T) {
 	}
 }
 
+func TestCreateUser_WithoutEmailService(t *testing.T) {
+	svc, _, _ := newSvc()
+	// Do not set email service - it should be nil
+
+	user, err := svc.CreateUser(context.Background(), domain.CreateUserInput{
+		Name:     "No Email Service Test",
+		Email:    "noemailsvc@example.com",
+		Password: "pass123",
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if user.ID == 0 {
+		t.Error("expected non-zero user ID")
+	}
+	// Verify user was created successfully even without email service
+	if user.Name != "No Email Service Test" {
+		t.Errorf("expected name 'No Email Service Test', got '%s'", user.Name)
+	}
+}
+
 func TestUpdateUser_CacheInvalidation(t *testing.T) {
 	svc, _, cache := newSvc()
 

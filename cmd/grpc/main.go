@@ -10,6 +10,7 @@ import (
 	"go-usersvc-demo/internal/config"
 	"go-usersvc-demo/internal/infrastructure/postgres"
 	infraredis "go-usersvc-demo/internal/infrastructure/redis"
+	"go-usersvc-demo/internal/pkg/ratelimit"
 	"go-usersvc-demo/internal/service"
 	transportgrpc "go-usersvc-demo/internal/transport/grpc"
 	"go-usersvc-demo/pkg/pb"
@@ -51,11 +52,20 @@ func main() {
 		parseDurationOrDefault(cfg.Auth.RefreshTokenTTL, 168*time.Hour),
 	)
 
-	// Create gRPC server
+	// Initialize rate limiter for gRPC
+	// 100 requests/sec per IP, burst of 10
+	grpcRateLimiter := ratelimit.NewLimiter(100, 10)
+	log.Println("✅ gRPC rate limiter initialized")
+
+	// Create gRPC server with interceptors
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			transportgrpc.LoggingInterceptor,
 			transportgrpc.NewAuthInterceptor(tokenManager),
+			transportgrpc.UnaryRateLimitInterceptor(grpcRateLimiter),
+		),
+		grpc.ChainStreamInterceptor(
+			transportgrpc.StreamRateLimitInterceptor(grpcRateLimiter),
 		),
 	)
 	pb.RegisterUserServiceServer(grpcServer, transportgrpc.NewHandler(userSvc))

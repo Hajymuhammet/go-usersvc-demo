@@ -16,6 +16,7 @@ import (
 	"go-usersvc-demo/internal/infrastructure/postgres"
 	infraredis "go-usersvc-demo/internal/infrastructure/redis"
 	"go-usersvc-demo/internal/pkg/logger"
+	"go-usersvc-demo/internal/pkg/ratelimit"
 	"go-usersvc-demo/internal/service"
 	transportgrpc "go-usersvc-demo/internal/transport/grpc"
 	transporthttp "go-usersvc-demo/internal/transport/http"
@@ -97,6 +98,13 @@ func main() {
 	)
 	authSvc := service.NewAuthService(userRepo, tokenManager)
 
+	// Initialize rate limiters
+	// Public endpoints: 100 requests/sec per IP, burst of 10
+	publicRateLimiter := ratelimit.NewLimiter(100, 10)
+	// Authenticated endpoints: 50 requests/sec per user, burst of 5
+	authRateLimiter := ratelimit.NewLimiter(50, 5)
+	log.Info("rate limiters initialized")
+
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
@@ -104,7 +112,12 @@ func main() {
 
 	// 1. Start REST Server
 	httpHandler := transporthttp.NewHandler(userSvc, authSvc, emailSvc)
-	router := transporthttp.NewRouter(httpHandler, transporthttp.NewAuthMiddleware(tokenManager))
+	router := transporthttp.NewRouter(
+		httpHandler,
+		transporthttp.NewAuthMiddleware(tokenManager),
+		publicRateLimiter,
+		authRateLimiter,
+	)
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%s", cfg.Server.Port),
 		Handler: router,
@@ -119,10 +132,15 @@ func main() {
 	})
 
 	// 2. Start gRPC Server
+	grpcRateLimiter := ratelimit.NewLimiter(100, 10)
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			transportgrpc.LoggingInterceptor,
 			transportgrpc.NewAuthInterceptor(tokenManager),
+			transportgrpc.UnaryRateLimitInterceptor(grpcRateLimiter),
+		),
+		grpc.ChainStreamInterceptor(
+			transportgrpc.StreamRateLimitInterceptor(grpcRateLimiter),
 		),
 	)
 	pb.RegisterUserServiceServer(grpcServer, transportgrpc.NewHandler(userSvc))
