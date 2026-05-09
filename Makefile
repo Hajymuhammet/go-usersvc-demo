@@ -13,7 +13,7 @@ ifneq (,$(wildcard .env))
 	export $(shell sed 's/=.*//' .env)
 endif
 
-.PHONY: all fmt vet lint test build run clean deps db-up db-down db-reset migrate-up migrate-down migrate-status proto init-swagger
+.PHONY: all fmt vet lint test test-unit test-integration test-coverage build run clean deps db-up db-down db-reset migrate-up migrate-down migrate-status proto init-swagger
 
 all: fmt vet lint test build
 
@@ -26,8 +26,23 @@ vet:
 lint:
 	$(GOLINT) run ./...
 
+# Test targets
 test:
-	$(GOTEST) ./...
+	$(GOTEST) -v ./...
+
+test-unit:
+	$(GOTEST) -v -short ./...
+
+test-integration:
+	$(GOTEST) -v -run Integration ./...
+
+test-coverage:
+	$(GOTEST) -v -coverprofile=coverage.out ./...
+	$(GO) tool cover -html=coverage.out -o coverage.html
+
+test-coverage-report:
+	$(GOTEST) -v -coverprofile=coverage.out ./...
+	$(GO) tool cover -func=coverage.out
 
 build:
 	$(GOBUILD) -o bin/$(APP_NAME) ./cmd/server
