@@ -7,8 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// RateLimitMiddleware creates a rate limit middleware for HTTP handlers.
-// It uses the client IP address as the key for rate limiting.
+
 func RateLimitMiddleware(limiter *ratelimit.Limiter) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clientIP := c.ClientIP()
@@ -33,14 +32,11 @@ func RateLimitMiddleware(limiter *ratelimit.Limiter) gin.HandlerFunc {
 	}
 }
 
-// AuthenticatedRateLimitMiddleware creates a rate limit middleware for authenticated endpoints.
-// It uses the user ID as the key for rate limiting when available, otherwise falls back to IP.
 func AuthenticatedRateLimitMiddleware(limiter *ratelimit.Limiter) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		requestID := c.GetString("request_id")
 		var key string
 
-		// Use user ID if available, otherwise use client IP
 		if userID, ok := UserIDFromContext(c.Request.Context()); ok {
 			key = "user:" + string(rune(userID))
 		} else {

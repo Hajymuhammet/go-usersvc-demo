@@ -10,20 +10,17 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// HealthResponse represents the health check response.
 type HealthResponse struct {
 	Status    string             `json:"status"`
 	Timestamp time.Time          `json:"timestamp"`
 	Services  map[string]Service `json:"services"`
 }
 
-// Service represents a service health status.
 type Service struct {
 	Status string `json:"status"`
 	Error  string `json:"error,omitempty"`
 }
 
-// HealthCheck checks the health of all services.
 func HealthCheck(db *pgxpool.Pool, redisClient *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := context.WithTimeout(c.Request.Context(), 2*time.Second)
@@ -34,7 +31,6 @@ func HealthCheck(db *pgxpool.Pool, redisClient *redis.Client) gin.HandlerFunc {
 			Services:  make(map[string]Service),
 		}
 
-		// Check Database
 		if err := db.Ping(ctx); err != nil {
 			response.Services["database"] = Service{
 				Status: "down",
@@ -44,7 +40,6 @@ func HealthCheck(db *pgxpool.Pool, redisClient *redis.Client) gin.HandlerFunc {
 			response.Services["database"] = Service{Status: "up"}
 		}
 
-		// Check Redis
 		if err := redisClient.Ping(ctx).Err(); err != nil {
 			response.Services["cache"] = Service{
 				Status: "down",
@@ -54,7 +49,6 @@ func HealthCheck(db *pgxpool.Pool, redisClient *redis.Client) gin.HandlerFunc {
 			response.Services["cache"] = Service{Status: "up"}
 		}
 
-		// Determine overall status
 		allUp := true
 		for _, svc := range response.Services {
 			if svc.Status != "up" {

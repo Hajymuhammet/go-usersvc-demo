@@ -11,11 +11,9 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// UnaryRateLimitInterceptor creates a unary interceptor for gRPC rate limiting.
-// It uses the client IP address as the key for rate limiting.
+
 func UnaryRateLimitInterceptor(limiter *ratelimit.Limiter) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		// Get client IP from peer
 		var clientIP string
 		if p, ok := peer.FromContext(ctx); ok {
 			clientIP = p.Addr.String()
@@ -36,11 +34,9 @@ func UnaryRateLimitInterceptor(limiter *ratelimit.Limiter) grpc.UnaryServerInter
 	}
 }
 
-// StreamRateLimitInterceptor creates a stream interceptor for gRPC rate limiting.
-// It uses the client IP address as the key for rate limiting.
+
 func StreamRateLimitInterceptor(limiter *ratelimit.Limiter) grpc.StreamServerInterceptor {
 	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		// Get client IP from peer
 		var clientIP string
 		if p, ok := peer.FromContext(ss.Context()); ok {
 			clientIP = p.Addr.String()

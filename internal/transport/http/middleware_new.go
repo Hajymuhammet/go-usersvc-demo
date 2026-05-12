@@ -11,7 +11,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// RequestIDMiddleware adds a unique request ID to each request.
 func RequestIDMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		requestID := c.GetHeader("X-Request-ID")
@@ -22,7 +21,6 @@ func RequestIDMiddleware() gin.HandlerFunc {
 		c.Set("request_id", requestID)
 		c.Header("X-Request-ID", requestID)
 
-		// Add request ID to context
 		ctx := context.WithValue(c.Request.Context(), "request_id", requestID)
 		c.Request = c.Request.WithContext(ctx)
 
@@ -30,13 +28,10 @@ func RequestIDMiddleware() gin.HandlerFunc {
 	}
 }
 
-// RequestLoggingMiddleware logs all incoming requests.
 func RequestLoggingMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		startTime := time.Now()
 		requestID := c.GetString("request_id")
-
-		// Log request
 		logger.Get().Info("incoming request",
 			"request_id", requestID,
 			"method", c.Request.Method,
@@ -46,7 +41,6 @@ func RequestLoggingMiddleware() gin.HandlerFunc {
 
 		c.Next()
 
-		// Log response
 		duration := time.Since(startTime)
 		logger.Get().Info("request completed",
 			"request_id", requestID,
@@ -58,7 +52,6 @@ func RequestLoggingMiddleware() gin.HandlerFunc {
 	}
 }
 
-// CORSMiddleware adds CORS headers to responses.
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
@@ -75,7 +68,6 @@ func CORSMiddleware() gin.HandlerFunc {
 	}
 }
 
-// RecoveryMiddleware recovers from panics and logs them.
 func RecoveryMiddleware() gin.HandlerFunc {
 	return gin.CustomRecovery(func(c *gin.Context, err interface{}) {
 		requestID := c.GetString("request_id")

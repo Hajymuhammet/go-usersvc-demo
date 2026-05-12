@@ -7,7 +7,7 @@ import (
 
 func TestGenerateAccessToken(t *testing.T) {
 	manager := NewManager("test-secret-key", 1*time.Hour, 7*24*time.Hour)
-	
+
 	token, err := manager.GenerateAccessToken(123)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -19,7 +19,7 @@ func TestGenerateAccessToken(t *testing.T) {
 
 func TestGenerateRefreshToken(t *testing.T) {
 	manager := NewManager("test-secret-key", 1*time.Hour, 7*24*time.Hour)
-	
+
 	token, err := manager.GenerateRefreshToken(456)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -31,7 +31,7 @@ func TestGenerateRefreshToken(t *testing.T) {
 
 func TestValidateAccessToken_Success(t *testing.T) {
 	manager := NewManager("test-secret-key", 1*time.Hour, 7*24*time.Hour)
-	
+
 	userID := int64(789)
 	token, err := manager.GenerateAccessToken(userID)
 	if err != nil {
@@ -49,7 +49,7 @@ func TestValidateAccessToken_Success(t *testing.T) {
 
 func TestValidateRefreshToken_Success(t *testing.T) {
 	manager := NewManager("test-secret-key", 1*time.Hour, 7*24*time.Hour)
-	
+
 	userID := int64(999)
 	token, err := manager.GenerateRefreshToken(userID)
 	if err != nil {
@@ -67,7 +67,7 @@ func TestValidateRefreshToken_Success(t *testing.T) {
 
 func TestValidateAccessToken_InvalidToken(t *testing.T) {
 	manager := NewManager("test-secret-key", 1*time.Hour, 7*24*time.Hour)
-	
+
 	_, err := manager.ValidateAccessToken("invalid-token")
 	if err == nil {
 		t.Fatal("expected error for invalid token, got nil")
@@ -77,7 +77,7 @@ func TestValidateAccessToken_InvalidToken(t *testing.T) {
 func TestValidateAccessToken_WrongSecret(t *testing.T) {
 	manager1 := NewManager("secret-1", 1*time.Hour, 7*24*time.Hour)
 	manager2 := NewManager("secret-2", 1*time.Hour, 7*24*time.Hour)
-	
+
 	token, err := manager1.GenerateAccessToken(999)
 	if err != nil {
 		t.Fatalf("failed to generate token: %v", err)
@@ -91,7 +91,7 @@ func TestValidateAccessToken_WrongSecret(t *testing.T) {
 
 func TestTokenType_AccessToken(t *testing.T) {
 	manager := NewManager("test-secret-key", 1*time.Hour, 7*24*time.Hour)
-	
+
 	accessToken, err := manager.GenerateAccessToken(123)
 	if err != nil {
 		t.Fatalf("failed to generate access token: %v", err)
@@ -106,7 +106,7 @@ func TestTokenType_AccessToken(t *testing.T) {
 
 func TestTokenType_RefreshToken(t *testing.T) {
 	manager := NewManager("test-secret-key", 1*time.Hour, 7*24*time.Hour)
-	
+
 	refreshToken, err := manager.GenerateRefreshToken(456)
 	if err != nil {
 		t.Fatalf("failed to generate refresh token: %v", err)
@@ -121,7 +121,7 @@ func TestTokenType_RefreshToken(t *testing.T) {
 
 func TestMultipleTokens(t *testing.T) {
 	manager := NewManager("test-secret-key", 1*time.Hour, 7*24*time.Hour)
-	
+
 	userID := int64(111)
 	accessToken, err := manager.GenerateAccessToken(userID)
 	if err != nil {
@@ -133,7 +133,6 @@ func TestMultipleTokens(t *testing.T) {
 		t.Fatalf("failed to generate refresh token: %v", err)
 	}
 
-	// Both tokens should have same userID
 	validatedAccessID, err := manager.ValidateAccessToken(accessToken)
 	if err != nil {
 		t.Fatalf("failed to validate access token: %v", err)

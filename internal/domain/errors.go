@@ -2,7 +2,6 @@ package domain
 
 import "fmt"
 
-// Custom error types for the application
 type ErrorCode string
 
 const (
@@ -15,15 +14,13 @@ const (
 	ErrCodeRateLimited  ErrorCode = "RATE_LIMITED"
 )
 
-// AppError represents a structured application error.
 type AppError struct {
 	Code    ErrorCode
 	Message string
 	Details string
-	Err     error // underlying error
+	Err     error 
 }
 
-// Error implements the error interface.
 func (e *AppError) Error() string {
 	if e.Details != "" {
 		return fmt.Sprintf("%s: %s (%s)", e.Code, e.Message, e.Details)
@@ -31,14 +28,10 @@ func (e *AppError) Error() string {
 	return fmt.Sprintf("%s: %s", e.Code, e.Message)
 }
 
-// Unwrap returns the underlying error.
 func (e *AppError) Unwrap() error {
 	return e.Err
 }
 
-// Constructor functions for common errors
-
-// NewNotFoundError creates a NOT_FOUND error.
 func NewNotFoundError(message, details string) *AppError {
 	return &AppError{
 		Code:    ErrCodeNotFound,
@@ -47,7 +40,6 @@ func NewNotFoundError(message, details string) *AppError {
 	}
 }
 
-// NewConflictError creates a CONFLICT error.
 func NewConflictError(message, details string) *AppError {
 	return &AppError{
 		Code:    ErrCodeConflict,
@@ -56,7 +48,6 @@ func NewConflictError(message, details string) *AppError {
 	}
 }
 
-// NewValidationError creates a VALIDATION_ERROR.
 func NewValidationError(message, details string) *AppError {
 	return &AppError{
 		Code:    ErrCodeValidation,
@@ -65,7 +56,6 @@ func NewValidationError(message, details string) *AppError {
 	}
 }
 
-// NewUnauthorizedError creates an UNAUTHORIZED error.
 func NewUnauthorizedError(message string) *AppError {
 	return &AppError{
 		Code:    ErrCodeUnauthorized,
@@ -73,7 +63,6 @@ func NewUnauthorizedError(message string) *AppError {
 	}
 }
 
-// NewForbiddenError creates a FORBIDDEN error.
 func NewForbiddenError(message string) *AppError {
 	return &AppError{
 		Code:    ErrCodeForbidden,
@@ -81,7 +70,6 @@ func NewForbiddenError(message string) *AppError {
 	}
 }
 
-// NewInternalError creates an INTERNAL_ERROR with underlying cause.
 func NewInternalError(message string, err error) *AppError {
 	return &AppError{
 		Code:    ErrCodeInternal,
@@ -90,7 +78,6 @@ func NewInternalError(message string, err error) *AppError {
 	}
 }
 
-// NewRateLimitedError creates a RATE_LIMITED error.
 func NewRateLimitedError(retryAfter string) *AppError {
 	return &AppError{
 		Code:    ErrCodeRateLimited,
@@ -99,7 +86,6 @@ func NewRateLimitedError(retryAfter string) *AppError {
 	}
 }
 
-// IsAppError checks if an error is an AppError.
 func IsAppError(err error) (*AppError, bool) {
 	appErr, ok := err.(*AppError)
 	return appErr, ok

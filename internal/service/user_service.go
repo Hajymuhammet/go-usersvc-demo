@@ -19,25 +19,19 @@ type UserService struct {
 	emailService domain.EmailService
 }
 
-// NewUserService creates a new UserService.
 func NewUserService(repo domain.UserRepository, cache domain.UserCache) *UserService {
 	return &UserService{repo: repo, cache: cache}
 }
 
-// SetEmailService sets the email service for the user service.
 func (s *UserService) SetEmailService(emailService domain.EmailService) {
 	s.emailService = emailService
 }
 
-// CreateUser hashes the password and persists the new user.
 func (s *UserService) CreateUser(ctx context.Context, input domain.CreateUserInput) (*domain.User, error) {
-	// Check for duplicate email
 	existing, _ := s.repo.GetByEmail(ctx, input.Email)
 	if existing != nil {
 		return nil, domain.NewConflictError("email already registered", input.Email)
 	}
-
-	// Hash password
 	hashed, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, domain.NewInternalError("failed to hash password", err)
@@ -55,10 +49,8 @@ func (s *UserService) CreateUser(ctx context.Context, input domain.CreateUserInp
 		return nil, domain.NewInternalError("failed to create user", err)
 	}
 
-	// Warm the cache
 	_ = s.cache.Set(ctx, created)
 
-	// Send welcome email if email service is configured
 	if s.emailService != nil {
 		_ = s.emailService.SendWelcomeEmail(ctx, created.Email, created.Name)
 	}
@@ -66,17 +58,12 @@ func (s *UserService) CreateUser(ctx context.Context, input domain.CreateUserInp
 	return created, nil
 }
 
-// GetUserByID returns a user, preferring the cache over the database.
 func (s *UserService) GetUserByID(ctx context.Context, id int64) (*domain.User, error) {
-	// Try cache first
 	cached, err := s.cache.Get(ctx, id)
 	if err == nil {
 		return cached, nil
 	}
-
-	// Cache miss — fall through to DB
 	if !errors.Is(err, redis.Nil) {
-		// Log non-Nil cache errors but continue
 		logger.Get().Debug("cache miss", "id", id, "error", err)
 	}
 
@@ -85,13 +72,11 @@ func (s *UserService) GetUserByID(ctx context.Context, id int64) (*domain.User, 
 		return nil, domain.NewNotFoundError("user not found", formatInt(id))
 	}
 
-	// Hydrate cache for next request
 	_ = s.cache.Set(ctx, user)
 
 	return user, nil
 }
 
-// ListUsers returns a paginated list of users.
 func (s *UserService) ListUsers(ctx context.Context, filter domain.ListFilter) (*domain.UserList, error) {
 	if filter.Page <= 0 {
 		filter.Page = 1
@@ -102,9 +87,7 @@ func (s *UserService) ListUsers(ctx context.Context, filter domain.ListFilter) (
 	return s.repo.List(ctx, filter)
 }
 
-// UpdateUser updates allowed user fields and invalidates the cache.
 func (s *UserService) UpdateUser(ctx context.Context, id int64, input domain.UpdateUserInput) (*domain.User, error) {
-	// Hash password if provided
 	if input.Password != nil {
 		hashed, err := bcrypt.GenerateFromPassword([]byte(*input.Password), bcrypt.DefaultCost)
 		if err != nil {
@@ -119,14 +102,12 @@ func (s *UserService) UpdateUser(ctx context.Context, id int64, input domain.Upd
 		return nil, domain.NewNotFoundError("user not found", formatInt(id))
 	}
 
-	// Invalidate stale cache entry
 	_ = s.cache.Delete(ctx, id)
 	_ = s.cache.Set(ctx, updated)
 
 	return updated, nil
 }
 
-// DeleteUser removes a user and evicts the cache.
 func (s *UserService) DeleteUser(ctx context.Context, id int64) error {
 	if err := s.repo.Delete(ctx, id); err != nil {
 		return domain.NewNotFoundError("user not found", formatInt(id))
@@ -135,7 +116,6 @@ func (s *UserService) DeleteUser(ctx context.Context, id int64) error {
 	return nil
 }
 
-// formatInt is a helper to convert int64 to string for error details.
 func formatInt(i int64) string {
 	return fmt.Sprintf("%d", i)
 }

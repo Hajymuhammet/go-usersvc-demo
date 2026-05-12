@@ -34,7 +34,6 @@ func TestAuthService_ValidatePassword_TooLong(t *testing.T) {
 	tokenManager := auth.NewManager("test-secret", 1*time.Hour, 7*24*time.Hour)
 	authService := service.NewAuthService(newMockRepo(), tokenManager)
 
-	// Generate a 130+ char password with valid characters
 	longPassword := "A1bcdefghijklmnopqrstuvwxyz"
 	for len(longPassword) < 130 {
 		longPassword += "A1bcdefghijklmnopqrstuvwxyz"
@@ -89,14 +88,12 @@ func TestAuthService_ValidatePassword_WeakPassword(t *testing.T) {
 func TestRateLimiter_AllowedAttempts(t *testing.T) {
 	rl := service.NewRateLimiter(3, 1*time.Minute)
 
-	// First 3 attempts should be allowed
 	for i := 0; i < 3; i++ {
 		if !rl.IsAllowed("user1") {
 			t.Fatalf("attempt %d should be allowed", i+1)
 		}
 	}
 
-	// 4th attempt should fail
 	if rl.IsAllowed("user1") {
 		t.Fatal("4th attempt should not be allowed")
 	}
@@ -105,19 +102,16 @@ func TestRateLimiter_AllowedAttempts(t *testing.T) {
 func TestRateLimiter_MultipleUsers(t *testing.T) {
 	rl := service.NewRateLimiter(2, 1*time.Minute)
 
-	// User 1 makes 2 attempts (allowed)
 	for i := 0; i < 2; i++ {
 		if !rl.IsAllowed("user1") {
 			t.Fatalf("user1 attempt %d should be allowed", i+1)
 		}
 	}
 
-	// User 1's 3rd attempt should fail
 	if rl.IsAllowed("user1") {
 		t.Fatal("user1's 3rd attempt should not be allowed")
 	}
 
-	// But user 2 should still have attempts available
 	if !rl.IsAllowed("user2") {
 		t.Fatal("user2's 1st attempt should be allowed")
 	}
@@ -126,22 +120,18 @@ func TestRateLimiter_MultipleUsers(t *testing.T) {
 func TestRateLimiter_Reset(t *testing.T) {
 	rl := service.NewRateLimiter(2, 1*time.Minute)
 
-	// Make 2 attempts (limit reached)
 	for i := 0; i < 2; i++ {
 		if !rl.IsAllowed("user1") {
 			t.Fatalf("attempt %d should be allowed", i+1)
 		}
 	}
 
-	// 3rd attempt should fail
 	if rl.IsAllowed("user1") {
 		t.Fatal("3rd attempt should not be allowed")
 	}
 
-	// Reset the limiter
 	rl.Reset("user1")
 
-	// Now attempt should be allowed again
 	if !rl.IsAllowed("user1") {
 		t.Fatal("attempt after reset should be allowed")
 	}
@@ -152,7 +142,6 @@ func TestAuthService_Login_Success(t *testing.T) {
 	tokenManager := auth.NewManager("test-secret", 1*time.Hour, 7*24*time.Hour)
 	authService := service.NewAuthService(repo, tokenManager)
 
-	// Create user first
 	userSvc := service.NewUserService(repo, newMockCache())
 	user, err := userSvc.CreateUser(context.Background(), domain.CreateUserInput{
 		Name:     "Test User",
@@ -163,7 +152,6 @@ func TestAuthService_Login_Success(t *testing.T) {
 		t.Fatalf("failed to create user: %v", err)
 	}
 
-	// Login should succeed
 	accessToken, refreshToken, loginUser, err := authService.Login(context.Background(), "test@example.com", "StrongPass123")
 	if err != nil {
 		t.Fatalf("login failed: %v", err)
@@ -177,7 +165,6 @@ func TestAuthService_Login_Success(t *testing.T) {
 		t.Errorf("expected user ID %d, got %d", user.ID, loginUser.ID)
 	}
 
-	// Validate tokens contain correct userID
 	validatedID, err := tokenManager.ValidateAccessToken(accessToken)
 	if err != nil {
 		t.Fatalf("failed to validate access token: %v", err)
@@ -204,7 +191,6 @@ func TestAuthService_Login_InvalidPassword(t *testing.T) {
 	tokenManager := auth.NewManager("test-secret", 1*time.Hour, 7*24*time.Hour)
 	authService := service.NewAuthService(repo, tokenManager)
 
-	// Create user
 	userSvc := service.NewUserService(repo, newMockCache())
 	_, err := userSvc.CreateUser(context.Background(), domain.CreateUserInput{
 		Name:     "Test User",
@@ -215,7 +201,6 @@ func TestAuthService_Login_InvalidPassword(t *testing.T) {
 		t.Fatalf("failed to create user: %v", err)
 	}
 
-	// Login with wrong password should fail
 	_, _, _, err = authService.Login(context.Background(), "test@example.com", "WrongPass123")
 	if err == nil {
 		t.Fatal("expected error for wrong password, got nil")
@@ -227,7 +212,6 @@ func TestAuthService_Login_RateLimiting(t *testing.T) {
 	tokenManager := auth.NewManager("test-secret", 1*time.Hour, 7*24*time.Hour)
 	authService := service.NewAuthService(repo, tokenManager)
 
-	// Create user
 	userSvc := service.NewUserService(repo, newMockCache())
 	_, err := userSvc.CreateUser(context.Background(), domain.CreateUserInput{
 		Name:     "Test User",
@@ -240,16 +224,13 @@ func TestAuthService_Login_RateLimiting(t *testing.T) {
 
 	email := "test@example.com"
 
-	// Make 5 failed login attempts (the rate limit is 5)
 	for i := 0; i < 5; i++ {
 		_, _, _, err = authService.Login(context.Background(), email, "WrongPassword")
-		// Expected to fail with password error
 		if err == nil {
 			t.Fatalf("login attempt %d should fail with wrong password", i+1)
 		}
 	}
 
-	// 6th login attempt should be rate limited
 	_, _, _, err = authService.Login(context.Background(), email, "StrongPass123")
 	if err == nil || err.Error() != "too many login attempts, please try again later" {
 		t.Errorf("expected rate_limited error after 5 attempts, got: %v", err)
@@ -267,7 +248,6 @@ func TestAuthService_RefreshToken_Success(t *testing.T) {
 		t.Fatalf("failed to generate refresh token: %v", err)
 	}
 
-	// Refresh should generate new access token
 	newAccessToken, newRefreshToken, err := authService.Refresh(context.Background(), refreshToken)
 	if err != nil {
 		t.Fatalf("refresh failed: %v", err)
@@ -277,7 +257,6 @@ func TestAuthService_RefreshToken_Success(t *testing.T) {
 		t.Fatal("expected non-empty tokens")
 	}
 
-	// Validate new token
 	validatedID, err := tokenManager.ValidateAccessToken(newAccessToken)
 	if err != nil {
 		t.Fatalf("failed to validate new access token: %v", err)

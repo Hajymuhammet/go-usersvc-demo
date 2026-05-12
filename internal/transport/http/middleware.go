@@ -16,7 +16,6 @@ type contextKey string
 
 const userIDContextKey contextKey = "userID"
 
-// LoggingMiddleware logs HTTP requests.
 func LoggingMiddleware() gin.HandlerFunc {
 	return gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
 		return fmt.Sprintf("[%s] %s %s %d %s %s\n",
@@ -30,7 +29,6 @@ func LoggingMiddleware() gin.HandlerFunc {
 	})
 }
 
-// NewAuthMiddleware validates an access token and stores the authenticated user ID in request context.
 func NewAuthMiddleware(tokenManager *auth.Manager) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
@@ -42,7 +40,6 @@ func NewAuthMiddleware(tokenManager *auth.Manager) gin.HandlerFunc {
 
 		token := authHeader
 
-		// Support both "Bearer token" and direct "token" formats
 		token = strings.TrimPrefix(authHeader, "Bearer ")
 
 		if token == "" {
@@ -67,13 +64,10 @@ func NewAuthMiddleware(tokenManager *auth.Manager) gin.HandlerFunc {
 	}
 }
 
-// UserIDFromContext returns the authenticated user ID stored in context.
 func UserIDFromContext(ctx context.Context) (int64, bool) {
 	userID, ok := ctx.Value(userIDContextKey).(int64)
 	return userID, ok
 }
-
-// ContextWithUserID stores the authenticated user ID in the provided context.
 func ContextWithUserID(ctx context.Context, userID int64) context.Context {
 	return context.WithValue(ctx, userIDContextKey, userID)
 }

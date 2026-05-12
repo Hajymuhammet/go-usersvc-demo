@@ -11,14 +11,12 @@ import (
 func TestPostgresUserRepo_Integration(t *testing.T) {
 	ctx := context.Background()
 
-	// Start PostgreSQL container
 	pgContainer, err := testhelpers.StartPostgresContainer(ctx)
 	if err != nil {
 		t.Fatalf("Failed to start postgres container: %v", err)
 	}
 	defer pgContainer.Terminate(ctx)
 
-	// Run migrations
 	createTableSQL := `
 	CREATE TABLE IF NOT EXISTS users (
 		id BIGSERIAL PRIMARY KEY,
@@ -33,7 +31,6 @@ func TestPostgresUserRepo_Integration(t *testing.T) {
 		t.Fatalf("Failed to run migrations: %v", err)
 	}
 
-	// Create repository
 	repo := NewUserRepo(pgContainer.GetPool())
 
 	t.Run("CreateUser_Success", func(t *testing.T) {
@@ -150,7 +147,6 @@ func TestPostgresUserRepo_Integration(t *testing.T) {
 	})
 
 	t.Run("List_Success", func(t *testing.T) {
-		// Create multiple users
 		for i := 0; i < 3; i++ {
 			user := &domain.User{
 				Name:     "List User " + string(rune(i)),
@@ -207,7 +203,7 @@ func TestPostgresUserRepo_DuplicateEmail(t *testing.T) {
 
 	user2 := &domain.User{
 		Name:     "User 2",
-		Email:    "duplicate@example.com", // Same email
+		Email:    "duplicate@example.com",
 		Password: "pass2",
 	}
 

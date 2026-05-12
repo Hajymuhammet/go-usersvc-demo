@@ -17,7 +17,6 @@ func TestUnaryRateLimitInterceptor_Allow(t *testing.T) {
 
 	interceptor := UnaryRateLimitInterceptor(limiter)
 
-	// Mock peer info
 	p := &peer.Peer{
 		Addr: &MockAddr{
 			network: "tcp",
@@ -47,7 +46,6 @@ func TestUnaryRateLimitInterceptor_Allow(t *testing.T) {
 }
 
 func TestUnaryRateLimitInterceptor_RateLimited(t *testing.T) {
-	// Very strict limit
 	limiter := ratelimit.NewLimiter(1, 1)
 	defer limiter.ResetAll()
 
@@ -70,19 +68,15 @@ func TestUnaryRateLimitInterceptor_RateLimited(t *testing.T) {
 		return "response", nil
 	}
 
-	// First call - should succeed
 	_, err1 := interceptor(ctx, nil, info, handler)
 	if err1 != nil {
 		t.Errorf("Expected first call to succeed, got %v", err1)
 	}
-
-	// Second call - should be rate limited
 	_, err2 := interceptor(ctx, nil, info, handler)
 	if err2 == nil {
 		t.Error("Expected second call to be rate limited")
 	}
 
-	// Check error code
 	st, ok := status.FromError(err2)
 	if !ok {
 		t.Fatalf("Expected grpc status error, got %v", err2)
@@ -107,7 +101,6 @@ func TestUnaryRateLimitInterceptor_DifferentIPs(t *testing.T) {
 		return "response", nil
 	}
 
-	// Request from IP1
 	p1 := &peer.Peer{
 		Addr: &MockAddr{
 			network: "tcp",
@@ -121,7 +114,6 @@ func TestUnaryRateLimitInterceptor_DifferentIPs(t *testing.T) {
 		t.Errorf("Expected IP1 request to succeed, got %v", err1)
 	}
 
-	// Request from IP2
 	p2 := &peer.Peer{
 		Addr: &MockAddr{
 			network: "tcp",
@@ -198,14 +190,12 @@ func TestStreamRateLimitInterceptor_RateLimited(t *testing.T) {
 		return nil
 	}
 
-	// First call
 	ss1 := &MockServerStream{ctx: ctx}
 	err1 := interceptor(nil, ss1, info, handler)
 	if err1 != nil {
 		t.Errorf("Expected first call to succeed, got %v", err1)
 	}
 
-	// Second call - rate limited
 	ss2 := &MockServerStream{ctx: ctx}
 	err2 := interceptor(nil, ss2, info, handler)
 	if err2 == nil {
@@ -221,7 +211,6 @@ func TestStreamRateLimitInterceptor_RateLimited(t *testing.T) {
 	}
 }
 
-// Mock implementations for testing
 type MockAddr struct {
 	network string
 	addr    string

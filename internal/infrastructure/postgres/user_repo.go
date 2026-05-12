@@ -13,17 +13,14 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// UserRepo implements domain.UserRepository using PostgreSQL.
 type UserRepo struct {
 	db *pgxpool.Pool
 }
 
-// NewUserRepo creates a new UserRepo.
 func NewUserRepo(db *pgxpool.Pool) *UserRepo {
 	return &UserRepo{db: db}
 }
 
-// Create inserts a new user into the database.
 func (r *UserRepo) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
 	query := `
 		INSERT INTO users (name, email, password, created_at, updated_at)
@@ -47,7 +44,6 @@ func (r *UserRepo) Create(ctx context.Context, user *domain.User) (*domain.User,
 	return result, nil
 }
 
-// GetByID fetches a single user by primary key.
 func (r *UserRepo) GetByID(ctx context.Context, id int64) (*domain.User, error) {
 	query := `SELECT id, name, email, password, created_at, updated_at FROM users WHERE id = $1`
 
@@ -65,7 +61,6 @@ func (r *UserRepo) GetByID(ctx context.Context, id int64) (*domain.User, error) 
 	return user, nil
 }
 
-// GetByEmail fetches a user by their email address.
 func (r *UserRepo) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
 	query := `SELECT id, name, email, password, created_at, updated_at FROM users WHERE email = $1`
 
@@ -83,11 +78,9 @@ func (r *UserRepo) GetByEmail(ctx context.Context, email string) (*domain.User, 
 	return user, nil
 }
 
-// List returns a paginated list of users.
 func (r *UserRepo) List(ctx context.Context, filter domain.ListFilter) (*domain.UserList, error) {
 	offset := (filter.Page - 1) * filter.Limit
 
-	// Count total
 	var total int64
 	if err := r.db.QueryRow(ctx, `SELECT COUNT(*) FROM users`).Scan(&total); err != nil {
 		return nil, fmt.Errorf("postgres: count users: %w", err)
@@ -119,7 +112,6 @@ func (r *UserRepo) List(ctx context.Context, filter domain.ListFilter) (*domain.
 	}, nil
 }
 
-// Update modifies an existing user's fields.
 func (r *UserRepo) Update(ctx context.Context, id int64, input domain.UpdateUserInput) (*domain.User, error) {
 	setClauses := []string{}
 	args := []interface{}{}
@@ -168,7 +160,6 @@ func (r *UserRepo) Update(ctx context.Context, id int64, input domain.UpdateUser
 	return user, nil
 }
 
-// Delete removes a user by ID.
 func (r *UserRepo) Delete(ctx context.Context, id int64) error {
 	result, err := r.db.Exec(ctx, `DELETE FROM users WHERE id = $1`, id)
 	if err != nil {

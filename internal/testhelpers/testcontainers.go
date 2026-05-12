@@ -10,14 +10,12 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-// PostgresContainer manages a PostgreSQL testcontainer
 type PostgresContainer struct {
 	container testcontainers.Container
 	pool      *pgxpool.Pool
 	DSN       string
 }
 
-// StartPostgresContainer starts a PostgreSQL container for testing
 func StartPostgresContainer(ctx context.Context) (*PostgresContainer, error) {
 	req := testcontainers.ContainerRequest{
 		Image:        "postgres:16-alpine",
@@ -40,7 +38,6 @@ func StartPostgresContainer(ctx context.Context) (*PostgresContainer, error) {
 		return nil, fmt.Errorf("failed to start postgres container: %w", err)
 	}
 
-	// Get the container host and port
 	host, err := container.Host(ctx)
 	if err != nil {
 		container.Terminate(ctx)
@@ -53,7 +50,6 @@ func StartPostgresContainer(ctx context.Context) (*PostgresContainer, error) {
 		return nil, fmt.Errorf("failed to get container port: %w", err)
 	}
 
-	// Create connection pool
 	dsn := fmt.Sprintf("postgres://postgres:123456@%s:%s/userdb?sslmode=disable",
 		host, port.Port())
 
@@ -63,7 +59,6 @@ func StartPostgresContainer(ctx context.Context) (*PostgresContainer, error) {
 		return nil, fmt.Errorf("failed to create pool: %w", err)
 	}
 
-	// Verify connection
 	if err := pool.Ping(ctx); err != nil {
 		pool.Close()
 		container.Terminate(ctx)
@@ -77,12 +72,9 @@ func StartPostgresContainer(ctx context.Context) (*PostgresContainer, error) {
 	}, nil
 }
 
-// GetPool returns the database connection pool
 func (pc *PostgresContainer) GetPool() *pgxpool.Pool {
 	return pc.pool
 }
-
-// RunMigrations runs SQL migrations
 func (pc *PostgresContainer) RunMigrations(ctx context.Context, migrations ...string) error {
 	for _, migration := range migrations {
 		if _, err := pc.pool.Exec(ctx, migration); err != nil {
@@ -92,7 +84,6 @@ func (pc *PostgresContainer) RunMigrations(ctx context.Context, migrations ...st
 	return nil
 }
 
-// Terminate stops the container
 func (pc *PostgresContainer) Terminate(ctx context.Context) error {
 	if pc.pool != nil {
 		pc.pool.Close()

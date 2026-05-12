@@ -2,35 +2,30 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
-	swaggerFiles "github.com/swaggo/files"     // swagger embed files
-	ginSwagger "github.com/swaggo/gin-swagger" // gin-swagger middleware
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 
-	_ "go-usersvc-demo/docs" // swagger generated docs
+	_ "go-usersvc-demo/docs"
 	"go-usersvc-demo/internal/pkg/ratelimit"
 )
 
-// NewRouter creates and returns a configured Gin engine.
 func NewRouter(h *Handler, authMiddleware gin.HandlerFunc, rateLimiter *ratelimit.Limiter, authRateLimiter *ratelimit.Limiter) *gin.Engine {
-	r := gin.New() // Use gin.New() instead of gin.Default() to avoid default middlewares
+	r := gin.New()
 
-	// Add custom middlewares
 	r.Use(RequestIDMiddleware())
 	r.Use(RequestLoggingMiddleware())
 	r.Use(CORSMiddleware())
 	r.Use(RecoveryMiddleware())
-	r.Use(RateLimitMiddleware(rateLimiter)) // Global rate limit for all requests
+	r.Use(RateLimitMiddleware(rateLimiter))
 
-	// Health check
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	// Public endpoints
 	r.POST("/users", h.CreateUser)
 	r.POST("/auth/login", h.Login)
 	r.POST("/auth/refresh", h.Refresh)
 
-	// Authenticated user routes with stricter rate limit
 	users := r.Group("/users")
 	users.Use(authMiddleware)
 	users.Use(AuthenticatedRateLimitMiddleware(authRateLimiter))
@@ -42,7 +37,6 @@ func NewRouter(h *Handler, authMiddleware gin.HandlerFunc, rateLimiter *ratelimi
 		users.DELETE("/:id", h.DeleteUser)
 	}
 
-	// Authenticated email routes with stricter rate limit
 	email := r.Group("/email")
 	email.Use(authMiddleware)
 	email.Use(AuthenticatedRateLimitMiddleware(authRateLimiter))

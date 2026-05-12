@@ -41,7 +41,6 @@ func main() {
 	defer redisClient.Close()
 	log.Println("✅ Connected to Redis")
 
-	// Wire dependencies
 	userRepo := postgres.NewUserRepo(db)
 	userCache := infraredis.NewUserCache(redisClient)
 	userSvc := service.NewUserService(userRepo, userCache)
@@ -52,12 +51,9 @@ func main() {
 		parseDurationOrDefault(cfg.Auth.RefreshTokenTTL, 168*time.Hour),
 	)
 
-	// Initialize rate limiter for gRPC
-	// 100 requests/sec per IP, burst of 10
 	grpcRateLimiter := ratelimit.NewLimiter(100, 10)
 	log.Println("✅ gRPC rate limiter initialized")
 
-	// Create gRPC server with interceptors
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			transportgrpc.LoggingInterceptor,
@@ -69,7 +65,7 @@ func main() {
 		),
 	)
 	pb.RegisterUserServiceServer(grpcServer, transportgrpc.NewHandler(userSvc))
-	reflection.Register(grpcServer) // enables grpcurl discovery
+	reflection.Register(grpcServer)
 
 	addr := fmt.Sprintf(":%s", cfg.Server.GRPCPort)
 	lis, err := net.Listen("tcp", addr)

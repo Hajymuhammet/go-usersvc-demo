@@ -82,12 +82,10 @@ func main() {
 	defer redisClient.Close()
 	log.Info("connected to redis")
 
-	// Wire dependencies
 	userRepo := postgres.NewUserRepo(db)
 	userCache := infraredis.NewUserCache(redisClient)
 	userSvc := service.NewUserService(userRepo, userCache)
 
-	// Initialize email service with mock provider (can be replaced with real provider)
 	emailProvider := service.NewMockEmailProvider()
 	emailSvc := service.NewEmailService(emailProvider)
 
@@ -98,10 +96,7 @@ func main() {
 	)
 	authSvc := service.NewAuthService(userRepo, tokenManager)
 
-	// Initialize rate limiters
-	// Public endpoints: 100 requests/sec per IP, burst of 10
 	publicRateLimiter := ratelimit.NewLimiter(100, 10)
-	// Authenticated endpoints: 50 requests/sec per user, burst of 5
 	authRateLimiter := ratelimit.NewLimiter(50, 5)
 	log.Info("rate limiters initialized")
 
@@ -110,7 +105,6 @@ func main() {
 
 	g, ctx := errgroup.WithContext(ctx)
 
-	// 1. Start REST Server
 	httpHandler := transporthttp.NewHandler(userSvc, authSvc, emailSvc)
 	router := transporthttp.NewRouter(
 		httpHandler,
@@ -131,7 +125,6 @@ func main() {
 		return nil
 	})
 
-	// 2. Start gRPC Server
 	grpcRateLimiter := ratelimit.NewLimiter(100, 10)
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
@@ -159,7 +152,6 @@ func main() {
 		return nil
 	})
 
-	// 3. Graceful Shutdown
 	g.Go(func() error {
 		<-ctx.Done()
 		log.Info("shutdown signal received, gracefully shutting down servers")

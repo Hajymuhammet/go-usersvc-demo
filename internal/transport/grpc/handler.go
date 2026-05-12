@@ -12,13 +12,11 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// Handler implements pb.UserServiceServer.
 type Handler struct {
 	pb.UnimplementedUserServiceServer
 	svc *service.UserService
 }
 
-// NewHandler creates a new gRPC Handler.
 func NewHandler(svc *service.UserService) *Handler {
 	return &Handler{svc: svc}
 }
@@ -33,7 +31,6 @@ func toProtoUser(u *domain.User) *pb.UserResponse {
 	}
 }
 
-// CreateUser creates a new user.
 func (h *Handler) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.UserResponse, error) {
 	if req.Name == "" || req.Email == "" || req.Password == "" {
 		return nil, status.Error(codes.InvalidArgument, "name, email, and password are required")
@@ -54,7 +51,6 @@ func (h *Handler) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*p
 	return toProtoUser(user), nil
 }
 
-// GetUserByID fetches a user by ID.
 func (h *Handler) GetUserByID(ctx context.Context, req *pb.GetUserByIDRequest) (*pb.UserResponse, error) {
 	if req.Id == 0 {
 		return nil, status.Error(codes.InvalidArgument, "id is required")
@@ -71,7 +67,6 @@ func (h *Handler) GetUserByID(ctx context.Context, req *pb.GetUserByIDRequest) (
 	return toProtoUser(user), nil
 }
 
-// ListUsers returns a paginated list of users.
 func (h *Handler) ListUsers(ctx context.Context, req *pb.ListUsersRequest) (*pb.ListUsersResponse, error) {
 	page := int(req.Page)
 	limit := int(req.Limit)
@@ -105,7 +100,6 @@ func (h *Handler) ListUsers(ctx context.Context, req *pb.ListUsersRequest) (*pb.
 	return resp, nil
 }
 
-// UpdateUser updates an existing user.
 func (h *Handler) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UserResponse, error) {
 	if req.Id == 0 {
 		return nil, status.Error(codes.InvalidArgument, "id is required")
@@ -133,7 +127,6 @@ func (h *Handler) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*p
 	return toProtoUser(user), nil
 }
 
-// DeleteUser removes a user by ID.
 func (h *Handler) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
 	if req.Id == 0 {
 		return nil, status.Error(codes.InvalidArgument, "id is required")

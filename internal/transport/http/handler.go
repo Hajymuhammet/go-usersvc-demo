@@ -15,14 +15,12 @@ import (
 
 var validate = validator.New()
 
-// Handler holds the HTTP handlers for user operations.
 type Handler struct {
 	svc          *service.UserService
 	authSvc      *service.AuthService
 	emailSvc     *service.EmailService
 }
 
-// NewHandler creates a new HTTP Handler.
 func NewHandler(svc *service.UserService, authSvc *service.AuthService, emailSvc *service.EmailService) *Handler {
 	return &Handler{svc: svc, authSvc: authSvc, emailSvc: emailSvc}
 }

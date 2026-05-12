@@ -8,13 +8,12 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// Config holds all application configuration.
 type Config struct {
 	Server   ServerConfig
 	Database DatabaseConfig
 	Redis    RedisConfig
 	Auth     AuthConfig
-	AppEnv   string // dev, staging, prod
+	AppEnv   string
 }
 
 type ServerConfig struct {
@@ -43,7 +42,6 @@ type RedisConfig struct {
 	DB       int
 }
 
-// DSN returns the PostgreSQL connection string.
 func (d DatabaseConfig) DSN() string {
 	return fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
@@ -51,16 +49,13 @@ func (d DatabaseConfig) DSN() string {
 	)
 }
 
-// Load reads configuration from environment (optionally from .env file).
 func Load() (*Config, error) {
-	// Load .env if it exists (ignore error if not present)
 	_ = godotenv.Load()
 
 	redisDB, _ := strconv.Atoi(getEnv("REDIS_DB", "0"))
 	appEnv := getEnv("APP_ENV", "development")
 	authSecret := getEnv("AUTH_SECRET", "")
 
-	// Validate required configuration
 	if authSecret == "" {
 		return nil, fmt.Errorf("AUTH_SECRET environment variable must be set and non-empty")
 	}

@@ -18,7 +18,6 @@ type contextKey string
 
 const userIDContextKey contextKey = "userID"
 
-// LoggingInterceptor logs gRPC requests.
 func LoggingInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 	start := time.Now()
 	resp, err := handler(ctx, req)
@@ -28,7 +27,6 @@ func LoggingInterceptor(ctx context.Context, req interface{}, info *grpc.UnarySe
 	return resp, err
 }
 
-// NewAuthInterceptor validates metadata and attaches the authenticated user ID to context.
 func NewAuthInterceptor(tokenManager *auth.Manager) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		md, ok := metadata.FromIncomingContext(ctx)
@@ -43,7 +41,6 @@ func NewAuthInterceptor(tokenManager *auth.Manager) grpc.UnaryServerInterceptor 
 
 		token := tokens[0]
 
-		// Support both "Bearer token" and direct "token" formats
 		token = strings.TrimPrefix(token, "Bearer ")
 
 		userID, err := tokenManager.ValidateAccessToken(token)
@@ -56,13 +53,11 @@ func NewAuthInterceptor(tokenManager *auth.Manager) grpc.UnaryServerInterceptor 
 	}
 }
 
-// UserIDFromContext returns the authenticated user ID stored in context.
 func UserIDFromContext(ctx context.Context) (int64, bool) {
 	userID, ok := ctx.Value(userIDContextKey).(int64)
 	return userID, ok
 }
 
-// ContextWithUserID stores the authenticated user ID in the provided context.
 func ContextWithUserID(ctx context.Context, userID int64) context.Context {
 	return context.WithValue(ctx, userIDContextKey, userID)
 }

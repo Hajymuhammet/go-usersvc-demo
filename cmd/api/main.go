@@ -36,12 +36,10 @@ func main() {
 	defer redisClient.Close()
 	log.Println("✅ Connected to Redis")
 
-	// Wire dependencies
 	userRepo := postgres.NewUserRepo(db)
 	userCache := infraredis.NewUserCache(redisClient)
 	userSvc := service.NewUserService(userRepo, userCache)
 
-	// Initialize email service with mock provider (can be replaced with real provider)
 	emailProvider := service.NewMockEmailProvider()
 	emailSvc := service.NewEmailService(emailProvider)
 
@@ -52,14 +50,9 @@ func main() {
 	)
 	authSvc := service.NewAuthService(userRepo, tokenManager)
 
-	// Initialize rate limiters
-	// Public endpoints: 100 requests/sec per IP, burst of 10
 	publicRateLimiter := ratelimit.NewLimiter(100, 10)
-	// Authenticated endpoints: 50 requests/sec per user, burst of 5
 	authRateLimiter := ratelimit.NewLimiter(50, 5)
 	log.Println("✅ Rate limiters initialized")
-
-	// Setup router and start server
 	handler := transporthttp.NewHandler(userSvc, authSvc, emailSvc)
 	router := transporthttp.NewRouter(
 		handler,

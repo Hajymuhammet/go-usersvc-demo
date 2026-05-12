@@ -46,13 +46,10 @@ func TestUserService_CreateUser_DuplicateEmail(t *testing.T) {
 		Password: "pass123",
 	}
 
-	// Create first user
 	_, err := userService.CreateUser(ctx, input)
 	if err != nil {
 		t.Fatalf("Failed to create first user: %v", err)
 	}
-
-	// Try to create with same email
 	input.Name = "User 2"
 	_, err = userService.CreateUser(ctx, input)
 	if err == nil {
@@ -72,13 +69,9 @@ func TestUserService_GetUser_FromCache(t *testing.T) {
 		Password: "pass123",
 	}
 
-	// Create user
 	createdUser, _ := userService.CreateUser(ctx, input)
-
-	// Set in cache
 	mockCache.Set(ctx, createdUser)
 
-	// Get user - should fetch from cache
 	retrieved, err := userService.GetUserByID(ctx, createdUser.ID)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
@@ -96,7 +89,6 @@ func TestUserService_ListUsers_WithMocks(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Create multiple users
 	for i := 0; i < 3; i++ {
 		input := domain.CreateUserInput{
 			Name:     "User " + string(rune(i)),
@@ -106,7 +98,6 @@ func TestUserService_ListUsers_WithMocks(t *testing.T) {
 		userService.CreateUser(ctx, input)
 	}
 
-	// List users
 	list, err := userService.ListUsers(ctx, domain.ListFilter{Page: 1, Limit: 10})
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
@@ -131,7 +122,6 @@ func TestUserService_UpdateUser_WithMocks(t *testing.T) {
 
 	user, _ := userService.CreateUser(ctx, input)
 
-	// Update user
 	newName := "Updated Name"
 	updated, err := userService.UpdateUser(ctx, user.ID, domain.UpdateUserInput{
 		Name: &newName,
@@ -159,13 +149,10 @@ func TestUserService_DeleteUser_WithMocks(t *testing.T) {
 
 	user, _ := userService.CreateUser(ctx, input)
 
-	// Delete user
 	err := userService.DeleteUser(ctx, user.ID)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
-
-	// Verify deleted
 	_, err = userService.GetUserByID(ctx, user.ID)
 	if err == nil {
 		t.Error("Expected error after deletion")
@@ -179,7 +166,6 @@ func TestUserService_RepositoryError_Handling(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Inject error
 	testErr := domain.NewNotFoundError("user not found", "user with id 999 not found")
 	mockRepo.SetupError(testErr)
 	defer mockRepo.ClearError()
