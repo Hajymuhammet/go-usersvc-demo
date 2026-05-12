@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"go-usersvc-demo/internal/domain"
+
+	"github.com/redis/go-redis/v9"
 )
 
 // MockUserRepository implements domain.UserRepository for testing
@@ -153,12 +155,16 @@ func (m *MockUserRepository) Delete(ctx context.Context, id int64) error {
 
 // SetupError injects an error for testing failure paths
 func (m *MockUserRepository) SetupError(err error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.shouldFail = true
 	m.failErr = err
 }
 
 // ClearError clears injected errors
 func (m *MockUserRepository) ClearError() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.shouldFail = false
 	m.failErr = nil
 }
@@ -195,7 +201,7 @@ func (m *MockUserCache) Get(ctx context.Context, id int64) (*domain.User, error)
 
 	u, ok := m.cache[id]
 	if !ok {
-		return nil, nil // Cache miss
+		return nil, redis.Nil // Cache miss
 	}
 	return u, nil
 }

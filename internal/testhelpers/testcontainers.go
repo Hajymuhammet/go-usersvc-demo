@@ -23,9 +23,9 @@ func StartPostgresContainer(ctx context.Context) (*PostgresContainer, error) {
 		Image:        "postgres:16-alpine",
 		ExposedPorts: []string{"5432/tcp"},
 		Env: map[string]string{
-			"POSTGRES_USER":     "testuser",
-			"POSTGRES_PASSWORD": "testpass",
-			"POSTGRES_DB":       "testdb",
+			"POSTGRES_USER":     "postgres",
+			"POSTGRES_PASSWORD": "123456",
+			"POSTGRES_DB":       "userdb",
 		},
 		WaitingFor: wait.ForLog("database system is ready to accept connections").
 			WithOccurrence(2).
@@ -54,7 +54,7 @@ func StartPostgresContainer(ctx context.Context) (*PostgresContainer, error) {
 	}
 
 	// Create connection pool
-	dsn := fmt.Sprintf("postgres://testuser:testpass@%s:%s/testdb?sslmode=disable",
+	dsn := fmt.Sprintf("postgres://postgres:123456@%s:%s/userdb?sslmode=disable",
 		host, port.Port())
 
 	pool, err := pgxpool.New(ctx, dsn)

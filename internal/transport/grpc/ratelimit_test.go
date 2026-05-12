@@ -2,9 +2,8 @@ package grpc
 
 import (
 	"context"
-	"testing"
-
 	"go-usersvc-demo/internal/pkg/ratelimit"
+	"testing"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

@@ -268,8 +268,7 @@ func (m *mockEmailService) SendWelcomeEmail(ctx context.Context, email string, n
 func TestCreateUser_WithEmailService(t *testing.T) {
 	svc, _, _ := newSvc()
 	emailSvc := newMockEmailService()
-	_ = emailSvc // mock email service for integration testing
-	svc.SetEmailService(&service.EmailService{})
+	svc.SetEmailService(emailSvc)
 
 	user, err := svc.CreateUser(context.Background(), domain.CreateUserInput{
 		Name:     "Email Test",
