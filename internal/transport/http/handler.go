@@ -311,7 +311,6 @@ func (h *Handler) DeleteUser(c *gin.Context) {
 // @Security     BearerAuth
 // @Router       /email/send [post]
 func (h *Handler) SendEmail(c *gin.Context) {
-	// Verify user is authenticated
 	userID, ok := UserIDFromContext(c.Request.Context())
 	if !ok {
 		httputility.RespondError(c, domain.NewUnauthorizedError("unauthorized"))
@@ -329,14 +328,12 @@ func (h *Handler) SendEmail(c *gin.Context) {
 		return
 	}
 
-	// Log the request
 	logger.Get().Info("email request",
 		"user_id", userID,
 		"recipient", input.To,
 		"template", input.Template,
 	)
 
-	// Send email based on template
 	switch input.Template {
 	case "welcome":
 		name, ok := input.Data["name"]

@@ -74,7 +74,7 @@ func mapErrorCodeToStatus(code domain.ErrorCode) int {
 	}
 }
 
-func ValidateAndRespond(c *gin.Context, v interface{}, validate func(interface{}) error) bool {
+func ValidateAndRespond(c *gin.Context, v any, validate func(any) error) bool {
 	if err := validate(v); err != nil {
 		RespondError(c, domain.NewValidationError("validation failed", err.Error()))
 		return false
@@ -82,7 +82,7 @@ func ValidateAndRespond(c *gin.Context, v interface{}, validate func(interface{}
 	return true
 }
 
-func WriteJSON(c *gin.Context, statusCode int, v interface{}) error {
+func WriteJSON(c *gin.Context, statusCode int, v any) error {
 	c.Header("Content-Type", "application/json")
 	c.Writer.WriteHeader(statusCode)
 	return json.NewEncoder(c.Writer).Encode(v)

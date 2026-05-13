@@ -34,7 +34,7 @@ func (l *Logger) WithError(err error) *Logger {
 	return &Logger{l.Logger.With(slog.Any("error", err))}
 }
 
-func (l *Logger) WithFields(fields map[string]interface{}) *Logger {
+func (l *Logger) WithFields(fields map[string]any) *Logger {
 	var args []any
 	for k, v := range fields {
 		args = append(args, slog.Any(k, v))
