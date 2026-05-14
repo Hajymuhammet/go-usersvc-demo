@@ -12,6 +12,7 @@ A production-ready user management service built with Go. Supports both REST and
 - Clean architecture: domain, service, infrastructure, transport
 - Validations using `github.com/go-playground/validator/v10`
 - Consistent error handling and API responses
+- Mock generation with `mockery` and assertions with `testify`
 
 ## 🧩 Prerequisites
 
@@ -135,10 +136,20 @@ Protofile is at `proto/user.proto`.
 
 ## 🧪 Testing
 
-Unit tests:
+The project uses `github.com/stretchr/testify` for assertions and `mockery` for interface mock generation.
+
+To generate or update mocks (requires [mockery](https://vektra.github.io/mockery/latest/)):
 
 ```bash
-go test ./internal/... ./... -v
+make mock
+```
+
+To run unit tests, you can use the built-in `Makefile` targets:
+
+```bash
+make test
+# or for unit tests only
+make test-unit
 ```
 
 ## 🪄 Build
