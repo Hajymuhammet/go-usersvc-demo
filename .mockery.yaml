@@ -1,0 +1,9 @@
+with-expecter: true
+issue-845-fix: true
+
+packages:
+  go-usersvc-demo/internal/domain:
+    config:
+      case: underscore
+      outpkg: mocks
+      output: internal/domain/mocks

@@ -13,7 +13,7 @@ ifneq (,$(wildcard .env))
 	export $(shell sed 's/=.*//' .env)
 endif
 
-.PHONY: all fmt vet lint test test-unit test-integration test-coverage build run clean deps db-up db-down db-reset migrate-up migrate-down migrate-status proto init-swagger
+.PHONY: all fmt vet lint test test-unit test-integration test-coverage build run clean deps db-up db-down db-reset migrate-up migrate-down migrate-status proto init-swagger mock
 
 all: fmt vet lint test build
 
@@ -82,3 +82,6 @@ proto:
 
 init-swagger:
 	swag init -g cmd/server/main.go -o ./docs
+
+mock:
+	mockery
