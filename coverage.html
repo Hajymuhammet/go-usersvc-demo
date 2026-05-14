@@ -69,51 +69,57 @@
 				
 				<option value="file6">go-usersvc-demo/internal/domain/errors.go (0.0%)</option>
 				
-				<option value="file7">go-usersvc-demo/internal/infrastructure/postgres/postgres.go (0.0%)</option>
+				<option value="file7">go-usersvc-demo/internal/domain/mocks/email_service.go (0.0%)</option>
 				
-				<option value="file8">go-usersvc-demo/internal/infrastructure/postgres/user_repo.go (77.6%)</option>
+				<option value="file8">go-usersvc-demo/internal/domain/mocks/user_cache.go (0.0%)</option>
 				
-				<option value="file9">go-usersvc-demo/internal/infrastructure/redis/redis.go (0.0%)</option>
+				<option value="file9">go-usersvc-demo/internal/domain/mocks/user_repository.go (0.0%)</option>
 				
-				<option value="file10">go-usersvc-demo/internal/infrastructure/redis/user_cache.go (0.0%)</option>
+				<option value="file10">go-usersvc-demo/internal/infrastructure/postgres/postgres.go (0.0%)</option>
 				
-				<option value="file11">go-usersvc-demo/internal/pkg/httputility/response.go (0.0%)</option>
+				<option value="file11">go-usersvc-demo/internal/infrastructure/postgres/user_repo.go (77.6%)</option>
 				
-				<option value="file12">go-usersvc-demo/internal/pkg/logger/logger.go (0.0%)</option>
+				<option value="file12">go-usersvc-demo/internal/infrastructure/redis/redis.go (0.0%)</option>
 				
-				<option value="file13">go-usersvc-demo/internal/pkg/ratelimit/limiter.go (75.8%)</option>
+				<option value="file13">go-usersvc-demo/internal/infrastructure/redis/user_cache.go (0.0%)</option>
 				
-				<option value="file14">go-usersvc-demo/internal/service/auth_service.go (69.0%)</option>
+				<option value="file14">go-usersvc-demo/internal/pkg/httputility/response.go (0.0%)</option>
 				
-				<option value="file15">go-usersvc-demo/internal/service/email_service.go (0.0%)</option>
+				<option value="file15">go-usersvc-demo/internal/pkg/logger/logger.go (0.0%)</option>
 				
-				<option value="file16">go-usersvc-demo/internal/service/user_service.go (95.9%)</option>
+				<option value="file16">go-usersvc-demo/internal/pkg/ratelimit/limiter.go (75.8%)</option>
 				
-				<option value="file17">go-usersvc-demo/internal/testhelpers/mocks.go (0.0%)</option>
+				<option value="file17">go-usersvc-demo/internal/service/auth_service.go (66.7%)</option>
 				
-				<option value="file18">go-usersvc-demo/internal/testhelpers/testcontainers.go (0.0%)</option>
+				<option value="file18">go-usersvc-demo/internal/service/email_service.go (0.0%)</option>
 				
-				<option value="file19">go-usersvc-demo/internal/transport/grpc/handler.go (0.0%)</option>
+				<option value="file19">go-usersvc-demo/internal/service/user_service.go (85.7%)</option>
 				
-				<option value="file20">go-usersvc-demo/internal/transport/grpc/middleware.go (0.0%)</option>
+				<option value="file20">go-usersvc-demo/internal/testhelpers/mocks.go (0.0%)</option>
 				
-				<option value="file21">go-usersvc-demo/internal/transport/grpc/ratelimit.go (88.9%)</option>
+				<option value="file21">go-usersvc-demo/internal/testhelpers/testcontainers.go (0.0%)</option>
 				
-				<option value="file22">go-usersvc-demo/internal/transport/http/handler.go (0.0%)</option>
+				<option value="file22">go-usersvc-demo/internal/transport/grpc/handler.go (0.0%)</option>
 				
-				<option value="file23">go-usersvc-demo/internal/transport/http/health.go (0.0%)</option>
+				<option value="file23">go-usersvc-demo/internal/transport/grpc/middleware.go (0.0%)</option>
 				
-				<option value="file24">go-usersvc-demo/internal/transport/http/middleware.go (11.1%)</option>
+				<option value="file24">go-usersvc-demo/internal/transport/grpc/ratelimit.go (88.9%)</option>
 				
-				<option value="file25">go-usersvc-demo/internal/transport/http/middleware_new.go (31.0%)</option>
+				<option value="file25">go-usersvc-demo/internal/transport/http/handler.go (0.0%)</option>
 				
-				<option value="file26">go-usersvc-demo/internal/transport/http/ratelimit.go (95.2%)</option>
+				<option value="file26">go-usersvc-demo/internal/transport/http/health.go (0.0%)</option>
 				
-				<option value="file27">go-usersvc-demo/internal/transport/http/router.go (0.0%)</option>
+				<option value="file27">go-usersvc-demo/internal/transport/http/middleware.go (11.1%)</option>
 				
-				<option value="file28">go-usersvc-demo/pkg/pb/user.pb.go (0.0%)</option>
+				<option value="file28">go-usersvc-demo/internal/transport/http/middleware_new.go (31.0%)</option>
 				
-				<option value="file29">go-usersvc-demo/pkg/pb/user_grpc.pb.go (0.0%)</option>
+				<option value="file29">go-usersvc-demo/internal/transport/http/ratelimit.go (95.2%)</option>
+				
+				<option value="file30">go-usersvc-demo/internal/transport/http/router.go (0.0%)</option>
+				
+				<option value="file31">go-usersvc-demo/pkg/pb/user.pb.go (0.0%)</option>
+				
+				<option value="file32">go-usersvc-demo/pkg/pb/user_grpc.pb.go (0.0%)</option>
 				
 				</select>
 			</div>
@@ -165,12 +171,10 @@ func main() <span class="cov0" title="0">{
         <span class="cov0" title="0">defer redisClient.Close()
         log.Println("✅ Connected to Redis")
 
-        // Wire dependencies
         userRepo := postgres.NewUserRepo(db)
         userCache := infraredis.NewUserCache(redisClient)
         userSvc := service.NewUserService(userRepo, userCache)
 
-        // Initialize email service with mock provider (can be replaced with real provider)
         emailProvider := service.NewMockEmailProvider()
         emailSvc := service.NewEmailService(emailProvider)
 
@@ -181,14 +185,9 @@ func main() <span class="cov0" title="0">{
         )
         authSvc := service.NewAuthService(userRepo, tokenManager)
 
-        // Initialize rate limiters
-        // Public endpoints: 100 requests/sec per IP, burst of 10
         publicRateLimiter := ratelimit.NewLimiter(100, 10)
-        // Authenticated endpoints: 50 requests/sec per user, burst of 5
         authRateLimiter := ratelimit.NewLimiter(50, 5)
         log.Println("✅ Rate limiters initialized")
-
-        // Setup router and start server
         handler := transporthttp.NewHandler(userSvc, authSvc, emailSvc)
         router := transporthttp.NewRouter(
                 handler,
@@ -257,7 +256,6 @@ func main() <span class="cov0" title="0">{
         <span class="cov0" title="0">defer redisClient.Close()
         log.Println("✅ Connected to Redis")
 
-        // Wire dependencies
         userRepo := postgres.NewUserRepo(db)
         userCache := infraredis.NewUserCache(redisClient)
         userSvc := service.NewUserService(userRepo, userCache)
@@ -268,12 +266,9 @@ func main() <span class="cov0" title="0">{
                 parseDurationOrDefault(cfg.Auth.RefreshTokenTTL, 168*time.Hour),
         )
 
-        // Initialize rate limiter for gRPC
-        // 100 requests/sec per IP, burst of 10
         grpcRateLimiter := ratelimit.NewLimiter(100, 10)
         log.Println("✅ gRPC rate limiter initialized")
 
-        // Create gRPC server with interceptors
         grpcServer := grpc.NewServer(
                 grpc.ChainUnaryInterceptor(
                         transportgrpc.LoggingInterceptor,
@@ -285,7 +280,7 @@ func main() <span class="cov0" title="0">{
                 ),
         )
         pb.RegisterUserServiceServer(grpcServer, transportgrpc.NewHandler(userSvc))
-        reflection.Register(grpcServer) // enables grpcurl discovery
+        reflection.Register(grpcServer)
 
         addr := fmt.Sprintf(":%s", cfg.Server.GRPCPort)
         lis, err := net.Listen("tcp", addr)
@@ -392,12 +387,10 @@ func main() <span class="cov0" title="0">{
         <span class="cov0" title="0">defer redisClient.Close()
         log.Info("connected to redis")
 
-        // Wire dependencies
         userRepo := postgres.NewUserRepo(db)
         userCache := infraredis.NewUserCache(redisClient)
         userSvc := service.NewUserService(userRepo, userCache)
 
-        // Initialize email service with mock provider (can be replaced with real provider)
         emailProvider := service.NewMockEmailProvider()
         emailSvc := service.NewEmailService(emailProvider)
 
@@ -408,10 +401,7 @@ func main() <span class="cov0" title="0">{
         )
         authSvc := service.NewAuthService(userRepo, tokenManager)
 
-        // Initialize rate limiters
-        // Public endpoints: 100 requests/sec per IP, burst of 10
         publicRateLimiter := ratelimit.NewLimiter(100, 10)
-        // Authenticated endpoints: 50 requests/sec per user, burst of 5
         authRateLimiter := ratelimit.NewLimiter(50, 5)
         log.Info("rate limiters initialized")
 
@@ -420,7 +410,6 @@ func main() <span class="cov0" title="0">{
 
         g, ctx := errgroup.WithContext(ctx)
 
-        // 1. Start REST Server
         httpHandler := transporthttp.NewHandler(userSvc, authSvc, emailSvc)
         router := transporthttp.NewRouter(
                 httpHandler,
@@ -441,7 +430,6 @@ func main() <span class="cov0" title="0">{
                 <span class="cov0" title="0">return nil</span>
         })
 
-        // 2. Start gRPC Server
         <span class="cov0" title="0">grpcRateLimiter := ratelimit.NewLimiter(100, 10)
         grpcServer := grpc.NewServer(
                 grpc.ChainUnaryInterceptor(
@@ -469,7 +457,6 @@ func main() <span class="cov0" title="0">{
                 <span class="cov0" title="0">return nil</span>
         })
 
-        // 3. Graceful Shutdown
         <span class="cov0" title="0">g.Go(func() error </span><span class="cov0" title="0">{
                 &lt;-ctx.Done()
                 log.Info("shutdown signal received, gracefully shutting down servers")
@@ -1277,13 +1264,12 @@ import (
         "github.com/joho/godotenv"
 )
 
-// Config holds all application configuration.
 type Config struct {
         Server   ServerConfig
         Database DatabaseConfig
         Redis    RedisConfig
         Auth     AuthConfig
-        AppEnv   string // dev, staging, prod
+        AppEnv   string
 }
 
 type ServerConfig struct {
@@ -1312,7 +1298,6 @@ type RedisConfig struct {
         DB       int
 }
 
-// DSN returns the PostgreSQL connection string.
 func (d DatabaseConfig) DSN() string <span class="cov0" title="0">{
         return fmt.Sprintf(
                 "postgres://%s:%s@%s:%s/%s?sslmode=%s",
@@ -1320,16 +1305,13 @@ func (d DatabaseConfig) DSN() string <span class="cov0" title="0">{
         )
 }</span>
 
-// Load reads configuration from environment (optionally from .env file).
 func Load() (*Config, error) <span class="cov0" title="0">{
-        // Load .env if it exists (ignore error if not present)
         _ = godotenv.Load()
 
         redisDB, _ := strconv.Atoi(getEnv("REDIS_DB", "0"))
         appEnv := getEnv("APP_ENV", "development")
         authSecret := getEnv("AUTH_SECRET", "")
 
-        // Validate required configuration
         if authSecret == "" </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("AUTH_SECRET environment variable must be set and non-empty")
         }</span>
@@ -1379,7 +1361,6 @@ func getEnv(key, defaultVal string) string <span class="cov0" title="0">{
 
 import "fmt"
 
-// Custom error types for the application
 type ErrorCode string
 
 const (
@@ -1392,15 +1373,13 @@ const (
         ErrCodeRateLimited  ErrorCode = "RATE_LIMITED"
 )
 
-// AppError represents a structured application error.
 type AppError struct {
         Code    ErrorCode
         Message string
         Details string
-        Err     error // underlying error
+        Err     error 
 }
 
-// Error implements the error interface.
 func (e *AppError) Error() string <span class="cov0" title="0">{
         if e.Details != "" </span><span class="cov0" title="0">{
                 return fmt.Sprintf("%s: %s (%s)", e.Code, e.Message, e.Details)
@@ -1408,14 +1387,10 @@ func (e *AppError) Error() string <span class="cov0" title="0">{
         <span class="cov0" title="0">return fmt.Sprintf("%s: %s", e.Code, e.Message)</span>
 }
 
-// Unwrap returns the underlying error.
 func (e *AppError) Unwrap() error <span class="cov0" title="0">{
         return e.Err
 }</span>
 
-// Constructor functions for common errors
-
-// NewNotFoundError creates a NOT_FOUND error.
 func NewNotFoundError(message, details string) *AppError <span class="cov0" title="0">{
         return &amp;AppError{
                 Code:    ErrCodeNotFound,
@@ -1424,7 +1399,6 @@ func NewNotFoundError(message, details string) *AppError <span class="cov0" titl
         }
 }</span>
 
-// NewConflictError creates a CONFLICT error.
 func NewConflictError(message, details string) *AppError <span class="cov0" title="0">{
         return &amp;AppError{
                 Code:    ErrCodeConflict,
@@ -1433,7 +1407,6 @@ func NewConflictError(message, details string) *AppError <span class="cov0" titl
         }
 }</span>
 
-// NewValidationError creates a VALIDATION_ERROR.
 func NewValidationError(message, details string) *AppError <span class="cov0" title="0">{
         return &amp;AppError{
                 Code:    ErrCodeValidation,
@@ -1442,7 +1415,6 @@ func NewValidationError(message, details string) *AppError <span class="cov0" ti
         }
 }</span>
 
-// NewUnauthorizedError creates an UNAUTHORIZED error.
 func NewUnauthorizedError(message string) *AppError <span class="cov0" title="0">{
         return &amp;AppError{
                 Code:    ErrCodeUnauthorized,
@@ -1450,7 +1422,6 @@ func NewUnauthorizedError(message string) *AppError <span class="cov0" title="0"
         }
 }</span>
 
-// NewForbiddenError creates a FORBIDDEN error.
 func NewForbiddenError(message string) *AppError <span class="cov0" title="0">{
         return &amp;AppError{
                 Code:    ErrCodeForbidden,
@@ -1458,7 +1429,6 @@ func NewForbiddenError(message string) *AppError <span class="cov0" title="0">{
         }
 }</span>
 
-// NewInternalError creates an INTERNAL_ERROR with underlying cause.
 func NewInternalError(message string, err error) *AppError <span class="cov0" title="0">{
         return &amp;AppError{
                 Code:    ErrCodeInternal,
@@ -1467,7 +1437,6 @@ func NewInternalError(message string, err error) *AppError <span class="cov0" ti
         }
 }</span>
 
-// NewRateLimitedError creates a RATE_LIMITED error.
 func NewRateLimitedError(retryAfter string) *AppError <span class="cov0" title="0">{
         return &amp;AppError{
                 Code:    ErrCodeRateLimited,
@@ -1476,14 +1445,673 @@ func NewRateLimitedError(retryAfter string) *AppError <span class="cov0" title="
         }
 }</span>
 
-// IsAppError checks if an error is an AppError.
 func IsAppError(err error) (*AppError, bool) <span class="cov0" title="0">{
         appErr, ok := err.(*AppError)
         return appErr, ok
 }</span>
 </pre>
 		
-		<pre class="file" id="file7" style="display: none">package postgres
+		<pre class="file" id="file7" style="display: none">// Code generated by mockery v2.53.6. DO NOT EDIT.
+
+package mocks
+
+import (
+        context "context"
+
+        mock "github.com/stretchr/testify/mock"
+)
+
+// EmailService is an autogenerated mock type for the EmailService type
+type EmailService struct {
+        mock.Mock
+}
+
+type EmailService_Expecter struct {
+        mock *mock.Mock
+}
+
+func (_m *EmailService) EXPECT() *EmailService_Expecter <span class="cov0" title="0">{
+        return &amp;EmailService_Expecter{mock: &amp;_m.Mock}
+}</span>
+
+// SendWelcomeEmail provides a mock function with given fields: ctx, email, name
+func (_m *EmailService) SendWelcomeEmail(ctx context.Context, email string, name string) error <span class="cov0" title="0">{
+        ret := _m.Called(ctx, email, name)
+
+        if len(ret) == 0 </span><span class="cov0" title="0">{
+                panic("no return value specified for SendWelcomeEmail")</span>
+        }
+
+        <span class="cov0" title="0">var r0 error
+        if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok </span><span class="cov0" title="0">{
+                r0 = rf(ctx, email, name)
+        }</span> else<span class="cov0" title="0"> {
+                r0 = ret.Error(0)
+        }</span>
+
+        <span class="cov0" title="0">return r0</span>
+}
+
+// EmailService_SendWelcomeEmail_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SendWelcomeEmail'
+type EmailService_SendWelcomeEmail_Call struct {
+        *mock.Call
+}
+
+// SendWelcomeEmail is a helper method to define mock.On call
+//   - ctx context.Context
+//   - email string
+//   - name string
+func (_e *EmailService_Expecter) SendWelcomeEmail(ctx interface{}, email interface{}, name interface{}) *EmailService_SendWelcomeEmail_Call <span class="cov0" title="0">{
+        return &amp;EmailService_SendWelcomeEmail_Call{Call: _e.mock.On("SendWelcomeEmail", ctx, email, name)}
+}</span>
+
+func (_c *EmailService_SendWelcomeEmail_Call) Run(run func(ctx context.Context, email string, name string)) *EmailService_SendWelcomeEmail_Call <span class="cov0" title="0">{
+        _c.Call.Run(func(args mock.Arguments) </span><span class="cov0" title="0">{
+                run(args[0].(context.Context), args[1].(string), args[2].(string))
+        }</span>)
+        <span class="cov0" title="0">return _c</span>
+}
+
+func (_c *EmailService_SendWelcomeEmail_Call) Return(_a0 error) *EmailService_SendWelcomeEmail_Call <span class="cov0" title="0">{
+        _c.Call.Return(_a0)
+        return _c
+}</span>
+
+func (_c *EmailService_SendWelcomeEmail_Call) RunAndReturn(run func(context.Context, string, string) error) *EmailService_SendWelcomeEmail_Call <span class="cov0" title="0">{
+        _c.Call.Return(run)
+        return _c
+}</span>
+
+// NewEmailService creates a new instance of EmailService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// The first argument is typically a *testing.T value.
+func NewEmailService(t interface {
+        mock.TestingT
+        Cleanup(func())
+}) *EmailService <span class="cov0" title="0">{
+        mock := &amp;EmailService{}
+        mock.Mock.Test(t)
+
+        t.Cleanup(func() </span><span class="cov0" title="0">{ mock.AssertExpectations(t) }</span>)
+
+        <span class="cov0" title="0">return mock</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">// Code generated by mockery v2.53.6. DO NOT EDIT.
+
+package mocks
+
+import (
+        context "context"
+        domain "go-usersvc-demo/internal/domain"
+
+        mock "github.com/stretchr/testify/mock"
+)
+
+// UserCache is an autogenerated mock type for the UserCache type
+type UserCache struct {
+        mock.Mock
+}
+
+type UserCache_Expecter struct {
+        mock *mock.Mock
+}
+
+func (_m *UserCache) EXPECT() *UserCache_Expecter <span class="cov0" title="0">{
+        return &amp;UserCache_Expecter{mock: &amp;_m.Mock}
+}</span>
+
+// Delete provides a mock function with given fields: ctx, id
+func (_m *UserCache) Delete(ctx context.Context, id int64) error <span class="cov0" title="0">{
+        ret := _m.Called(ctx, id)
+
+        if len(ret) == 0 </span><span class="cov0" title="0">{
+                panic("no return value specified for Delete")</span>
+        }
+
+        <span class="cov0" title="0">var r0 error
+        if rf, ok := ret.Get(0).(func(context.Context, int64) error); ok </span><span class="cov0" title="0">{
+                r0 = rf(ctx, id)
+        }</span> else<span class="cov0" title="0"> {
+                r0 = ret.Error(0)
+        }</span>
+
+        <span class="cov0" title="0">return r0</span>
+}
+
+// UserCache_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
+type UserCache_Delete_Call struct {
+        *mock.Call
+}
+
+// Delete is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id int64
+func (_e *UserCache_Expecter) Delete(ctx interface{}, id interface{}) *UserCache_Delete_Call <span class="cov0" title="0">{
+        return &amp;UserCache_Delete_Call{Call: _e.mock.On("Delete", ctx, id)}
+}</span>
+
+func (_c *UserCache_Delete_Call) Run(run func(ctx context.Context, id int64)) *UserCache_Delete_Call <span class="cov0" title="0">{
+        _c.Call.Run(func(args mock.Arguments) </span><span class="cov0" title="0">{
+                run(args[0].(context.Context), args[1].(int64))
+        }</span>)
+        <span class="cov0" title="0">return _c</span>
+}
+
+func (_c *UserCache_Delete_Call) Return(_a0 error) *UserCache_Delete_Call <span class="cov0" title="0">{
+        _c.Call.Return(_a0)
+        return _c
+}</span>
+
+func (_c *UserCache_Delete_Call) RunAndReturn(run func(context.Context, int64) error) *UserCache_Delete_Call <span class="cov0" title="0">{
+        _c.Call.Return(run)
+        return _c
+}</span>
+
+// Get provides a mock function with given fields: ctx, id
+func (_m *UserCache) Get(ctx context.Context, id int64) (*domain.User, error) <span class="cov0" title="0">{
+        ret := _m.Called(ctx, id)
+
+        if len(ret) == 0 </span><span class="cov0" title="0">{
+                panic("no return value specified for Get")</span>
+        }
+
+        <span class="cov0" title="0">var r0 *domain.User
+        var r1 error
+        if rf, ok := ret.Get(0).(func(context.Context, int64) (*domain.User, error)); ok </span><span class="cov0" title="0">{
+                return rf(ctx, id)
+        }</span>
+        <span class="cov0" title="0">if rf, ok := ret.Get(0).(func(context.Context, int64) *domain.User); ok </span><span class="cov0" title="0">{
+                r0 = rf(ctx, id)
+        }</span> else<span class="cov0" title="0"> {
+                if ret.Get(0) != nil </span><span class="cov0" title="0">{
+                        r0 = ret.Get(0).(*domain.User)
+                }</span>
+        }
+
+        <span class="cov0" title="0">if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok </span><span class="cov0" title="0">{
+                r1 = rf(ctx, id)
+        }</span> else<span class="cov0" title="0"> {
+                r1 = ret.Error(1)
+        }</span>
+
+        <span class="cov0" title="0">return r0, r1</span>
+}
+
+// UserCache_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
+type UserCache_Get_Call struct {
+        *mock.Call
+}
+
+// Get is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id int64
+func (_e *UserCache_Expecter) Get(ctx interface{}, id interface{}) *UserCache_Get_Call <span class="cov0" title="0">{
+        return &amp;UserCache_Get_Call{Call: _e.mock.On("Get", ctx, id)}
+}</span>
+
+func (_c *UserCache_Get_Call) Run(run func(ctx context.Context, id int64)) *UserCache_Get_Call <span class="cov0" title="0">{
+        _c.Call.Run(func(args mock.Arguments) </span><span class="cov0" title="0">{
+                run(args[0].(context.Context), args[1].(int64))
+        }</span>)
+        <span class="cov0" title="0">return _c</span>
+}
+
+func (_c *UserCache_Get_Call) Return(_a0 *domain.User, _a1 error) *UserCache_Get_Call <span class="cov0" title="0">{
+        _c.Call.Return(_a0, _a1)
+        return _c
+}</span>
+
+func (_c *UserCache_Get_Call) RunAndReturn(run func(context.Context, int64) (*domain.User, error)) *UserCache_Get_Call <span class="cov0" title="0">{
+        _c.Call.Return(run)
+        return _c
+}</span>
+
+// Set provides a mock function with given fields: ctx, user
+func (_m *UserCache) Set(ctx context.Context, user *domain.User) error <span class="cov0" title="0">{
+        ret := _m.Called(ctx, user)
+
+        if len(ret) == 0 </span><span class="cov0" title="0">{
+                panic("no return value specified for Set")</span>
+        }
+
+        <span class="cov0" title="0">var r0 error
+        if rf, ok := ret.Get(0).(func(context.Context, *domain.User) error); ok </span><span class="cov0" title="0">{
+                r0 = rf(ctx, user)
+        }</span> else<span class="cov0" title="0"> {
+                r0 = ret.Error(0)
+        }</span>
+
+        <span class="cov0" title="0">return r0</span>
+}
+
+// UserCache_Set_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Set'
+type UserCache_Set_Call struct {
+        *mock.Call
+}
+
+// Set is a helper method to define mock.On call
+//   - ctx context.Context
+//   - user *domain.User
+func (_e *UserCache_Expecter) Set(ctx interface{}, user interface{}) *UserCache_Set_Call <span class="cov0" title="0">{
+        return &amp;UserCache_Set_Call{Call: _e.mock.On("Set", ctx, user)}
+}</span>
+
+func (_c *UserCache_Set_Call) Run(run func(ctx context.Context, user *domain.User)) *UserCache_Set_Call <span class="cov0" title="0">{
+        _c.Call.Run(func(args mock.Arguments) </span><span class="cov0" title="0">{
+                run(args[0].(context.Context), args[1].(*domain.User))
+        }</span>)
+        <span class="cov0" title="0">return _c</span>
+}
+
+func (_c *UserCache_Set_Call) Return(_a0 error) *UserCache_Set_Call <span class="cov0" title="0">{
+        _c.Call.Return(_a0)
+        return _c
+}</span>
+
+func (_c *UserCache_Set_Call) RunAndReturn(run func(context.Context, *domain.User) error) *UserCache_Set_Call <span class="cov0" title="0">{
+        _c.Call.Return(run)
+        return _c
+}</span>
+
+// NewUserCache creates a new instance of UserCache. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// The first argument is typically a *testing.T value.
+func NewUserCache(t interface {
+        mock.TestingT
+        Cleanup(func())
+}) *UserCache <span class="cov0" title="0">{
+        mock := &amp;UserCache{}
+        mock.Mock.Test(t)
+
+        t.Cleanup(func() </span><span class="cov0" title="0">{ mock.AssertExpectations(t) }</span>)
+
+        <span class="cov0" title="0">return mock</span>
+}
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">// Code generated by mockery v2.53.6. DO NOT EDIT.
+
+package mocks
+
+import (
+        context "context"
+        domain "go-usersvc-demo/internal/domain"
+
+        mock "github.com/stretchr/testify/mock"
+)
+
+// UserRepository is an autogenerated mock type for the UserRepository type
+type UserRepository struct {
+        mock.Mock
+}
+
+type UserRepository_Expecter struct {
+        mock *mock.Mock
+}
+
+func (_m *UserRepository) EXPECT() *UserRepository_Expecter <span class="cov0" title="0">{
+        return &amp;UserRepository_Expecter{mock: &amp;_m.Mock}
+}</span>
+
+// Create provides a mock function with given fields: ctx, user
+func (_m *UserRepository) Create(ctx context.Context, user *domain.User) (*domain.User, error) <span class="cov0" title="0">{
+        ret := _m.Called(ctx, user)
+
+        if len(ret) == 0 </span><span class="cov0" title="0">{
+                panic("no return value specified for Create")</span>
+        }
+
+        <span class="cov0" title="0">var r0 *domain.User
+        var r1 error
+        if rf, ok := ret.Get(0).(func(context.Context, *domain.User) (*domain.User, error)); ok </span><span class="cov0" title="0">{
+                return rf(ctx, user)
+        }</span>
+        <span class="cov0" title="0">if rf, ok := ret.Get(0).(func(context.Context, *domain.User) *domain.User); ok </span><span class="cov0" title="0">{
+                r0 = rf(ctx, user)
+        }</span> else<span class="cov0" title="0"> {
+                if ret.Get(0) != nil </span><span class="cov0" title="0">{
+                        r0 = ret.Get(0).(*domain.User)
+                }</span>
+        }
+
+        <span class="cov0" title="0">if rf, ok := ret.Get(1).(func(context.Context, *domain.User) error); ok </span><span class="cov0" title="0">{
+                r1 = rf(ctx, user)
+        }</span> else<span class="cov0" title="0"> {
+                r1 = ret.Error(1)
+        }</span>
+
+        <span class="cov0" title="0">return r0, r1</span>
+}
+
+// UserRepository_Create_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Create'
+type UserRepository_Create_Call struct {
+        *mock.Call
+}
+
+// Create is a helper method to define mock.On call
+//   - ctx context.Context
+//   - user *domain.User
+func (_e *UserRepository_Expecter) Create(ctx interface{}, user interface{}) *UserRepository_Create_Call <span class="cov0" title="0">{
+        return &amp;UserRepository_Create_Call{Call: _e.mock.On("Create", ctx, user)}
+}</span>
+
+func (_c *UserRepository_Create_Call) Run(run func(ctx context.Context, user *domain.User)) *UserRepository_Create_Call <span class="cov0" title="0">{
+        _c.Call.Run(func(args mock.Arguments) </span><span class="cov0" title="0">{
+                run(args[0].(context.Context), args[1].(*domain.User))
+        }</span>)
+        <span class="cov0" title="0">return _c</span>
+}
+
+func (_c *UserRepository_Create_Call) Return(_a0 *domain.User, _a1 error) *UserRepository_Create_Call <span class="cov0" title="0">{
+        _c.Call.Return(_a0, _a1)
+        return _c
+}</span>
+
+func (_c *UserRepository_Create_Call) RunAndReturn(run func(context.Context, *domain.User) (*domain.User, error)) *UserRepository_Create_Call <span class="cov0" title="0">{
+        _c.Call.Return(run)
+        return _c
+}</span>
+
+// Delete provides a mock function with given fields: ctx, id
+func (_m *UserRepository) Delete(ctx context.Context, id int64) error <span class="cov0" title="0">{
+        ret := _m.Called(ctx, id)
+
+        if len(ret) == 0 </span><span class="cov0" title="0">{
+                panic("no return value specified for Delete")</span>
+        }
+
+        <span class="cov0" title="0">var r0 error
+        if rf, ok := ret.Get(0).(func(context.Context, int64) error); ok </span><span class="cov0" title="0">{
+                r0 = rf(ctx, id)
+        }</span> else<span class="cov0" title="0"> {
+                r0 = ret.Error(0)
+        }</span>
+
+        <span class="cov0" title="0">return r0</span>
+}
+
+// UserRepository_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
+type UserRepository_Delete_Call struct {
+        *mock.Call
+}
+
+// Delete is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id int64
+func (_e *UserRepository_Expecter) Delete(ctx interface{}, id interface{}) *UserRepository_Delete_Call <span class="cov0" title="0">{
+        return &amp;UserRepository_Delete_Call{Call: _e.mock.On("Delete", ctx, id)}
+}</span>
+
+func (_c *UserRepository_Delete_Call) Run(run func(ctx context.Context, id int64)) *UserRepository_Delete_Call <span class="cov0" title="0">{
+        _c.Call.Run(func(args mock.Arguments) </span><span class="cov0" title="0">{
+                run(args[0].(context.Context), args[1].(int64))
+        }</span>)
+        <span class="cov0" title="0">return _c</span>
+}
+
+func (_c *UserRepository_Delete_Call) Return(_a0 error) *UserRepository_Delete_Call <span class="cov0" title="0">{
+        _c.Call.Return(_a0)
+        return _c
+}</span>
+
+func (_c *UserRepository_Delete_Call) RunAndReturn(run func(context.Context, int64) error) *UserRepository_Delete_Call <span class="cov0" title="0">{
+        _c.Call.Return(run)
+        return _c
+}</span>
+
+// GetByEmail provides a mock function with given fields: ctx, email
+func (_m *UserRepository) GetByEmail(ctx context.Context, email string) (*domain.User, error) <span class="cov0" title="0">{
+        ret := _m.Called(ctx, email)
+
+        if len(ret) == 0 </span><span class="cov0" title="0">{
+                panic("no return value specified for GetByEmail")</span>
+        }
+
+        <span class="cov0" title="0">var r0 *domain.User
+        var r1 error
+        if rf, ok := ret.Get(0).(func(context.Context, string) (*domain.User, error)); ok </span><span class="cov0" title="0">{
+                return rf(ctx, email)
+        }</span>
+        <span class="cov0" title="0">if rf, ok := ret.Get(0).(func(context.Context, string) *domain.User); ok </span><span class="cov0" title="0">{
+                r0 = rf(ctx, email)
+        }</span> else<span class="cov0" title="0"> {
+                if ret.Get(0) != nil </span><span class="cov0" title="0">{
+                        r0 = ret.Get(0).(*domain.User)
+                }</span>
+        }
+
+        <span class="cov0" title="0">if rf, ok := ret.Get(1).(func(context.Context, string) error); ok </span><span class="cov0" title="0">{
+                r1 = rf(ctx, email)
+        }</span> else<span class="cov0" title="0"> {
+                r1 = ret.Error(1)
+        }</span>
+
+        <span class="cov0" title="0">return r0, r1</span>
+}
+
+// UserRepository_GetByEmail_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetByEmail'
+type UserRepository_GetByEmail_Call struct {
+        *mock.Call
+}
+
+// GetByEmail is a helper method to define mock.On call
+//   - ctx context.Context
+//   - email string
+func (_e *UserRepository_Expecter) GetByEmail(ctx interface{}, email interface{}) *UserRepository_GetByEmail_Call <span class="cov0" title="0">{
+        return &amp;UserRepository_GetByEmail_Call{Call: _e.mock.On("GetByEmail", ctx, email)}
+}</span>
+
+func (_c *UserRepository_GetByEmail_Call) Run(run func(ctx context.Context, email string)) *UserRepository_GetByEmail_Call <span class="cov0" title="0">{
+        _c.Call.Run(func(args mock.Arguments) </span><span class="cov0" title="0">{
+                run(args[0].(context.Context), args[1].(string))
+        }</span>)
+        <span class="cov0" title="0">return _c</span>
+}
+
+func (_c *UserRepository_GetByEmail_Call) Return(_a0 *domain.User, _a1 error) *UserRepository_GetByEmail_Call <span class="cov0" title="0">{
+        _c.Call.Return(_a0, _a1)
+        return _c
+}</span>
+
+func (_c *UserRepository_GetByEmail_Call) RunAndReturn(run func(context.Context, string) (*domain.User, error)) *UserRepository_GetByEmail_Call <span class="cov0" title="0">{
+        _c.Call.Return(run)
+        return _c
+}</span>
+
+// GetByID provides a mock function with given fields: ctx, id
+func (_m *UserRepository) GetByID(ctx context.Context, id int64) (*domain.User, error) <span class="cov0" title="0">{
+        ret := _m.Called(ctx, id)
+
+        if len(ret) == 0 </span><span class="cov0" title="0">{
+                panic("no return value specified for GetByID")</span>
+        }
+
+        <span class="cov0" title="0">var r0 *domain.User
+        var r1 error
+        if rf, ok := ret.Get(0).(func(context.Context, int64) (*domain.User, error)); ok </span><span class="cov0" title="0">{
+                return rf(ctx, id)
+        }</span>
+        <span class="cov0" title="0">if rf, ok := ret.Get(0).(func(context.Context, int64) *domain.User); ok </span><span class="cov0" title="0">{
+                r0 = rf(ctx, id)
+        }</span> else<span class="cov0" title="0"> {
+                if ret.Get(0) != nil </span><span class="cov0" title="0">{
+                        r0 = ret.Get(0).(*domain.User)
+                }</span>
+        }
+
+        <span class="cov0" title="0">if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok </span><span class="cov0" title="0">{
+                r1 = rf(ctx, id)
+        }</span> else<span class="cov0" title="0"> {
+                r1 = ret.Error(1)
+        }</span>
+
+        <span class="cov0" title="0">return r0, r1</span>
+}
+
+// UserRepository_GetByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetByID'
+type UserRepository_GetByID_Call struct {
+        *mock.Call
+}
+
+// GetByID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id int64
+func (_e *UserRepository_Expecter) GetByID(ctx interface{}, id interface{}) *UserRepository_GetByID_Call <span class="cov0" title="0">{
+        return &amp;UserRepository_GetByID_Call{Call: _e.mock.On("GetByID", ctx, id)}
+}</span>
+
+func (_c *UserRepository_GetByID_Call) Run(run func(ctx context.Context, id int64)) *UserRepository_GetByID_Call <span class="cov0" title="0">{
+        _c.Call.Run(func(args mock.Arguments) </span><span class="cov0" title="0">{
+                run(args[0].(context.Context), args[1].(int64))
+        }</span>)
+        <span class="cov0" title="0">return _c</span>
+}
+
+func (_c *UserRepository_GetByID_Call) Return(_a0 *domain.User, _a1 error) *UserRepository_GetByID_Call <span class="cov0" title="0">{
+        _c.Call.Return(_a0, _a1)
+        return _c
+}</span>
+
+func (_c *UserRepository_GetByID_Call) RunAndReturn(run func(context.Context, int64) (*domain.User, error)) *UserRepository_GetByID_Call <span class="cov0" title="0">{
+        _c.Call.Return(run)
+        return _c
+}</span>
+
+// List provides a mock function with given fields: ctx, filter
+func (_m *UserRepository) List(ctx context.Context, filter domain.ListFilter) (*domain.UserList, error) <span class="cov0" title="0">{
+        ret := _m.Called(ctx, filter)
+
+        if len(ret) == 0 </span><span class="cov0" title="0">{
+                panic("no return value specified for List")</span>
+        }
+
+        <span class="cov0" title="0">var r0 *domain.UserList
+        var r1 error
+        if rf, ok := ret.Get(0).(func(context.Context, domain.ListFilter) (*domain.UserList, error)); ok </span><span class="cov0" title="0">{
+                return rf(ctx, filter)
+        }</span>
+        <span class="cov0" title="0">if rf, ok := ret.Get(0).(func(context.Context, domain.ListFilter) *domain.UserList); ok </span><span class="cov0" title="0">{
+                r0 = rf(ctx, filter)
+        }</span> else<span class="cov0" title="0"> {
+                if ret.Get(0) != nil </span><span class="cov0" title="0">{
+                        r0 = ret.Get(0).(*domain.UserList)
+                }</span>
+        }
+
+        <span class="cov0" title="0">if rf, ok := ret.Get(1).(func(context.Context, domain.ListFilter) error); ok </span><span class="cov0" title="0">{
+                r1 = rf(ctx, filter)
+        }</span> else<span class="cov0" title="0"> {
+                r1 = ret.Error(1)
+        }</span>
+
+        <span class="cov0" title="0">return r0, r1</span>
+}
+
+// UserRepository_List_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'List'
+type UserRepository_List_Call struct {
+        *mock.Call
+}
+
+// List is a helper method to define mock.On call
+//   - ctx context.Context
+//   - filter domain.ListFilter
+func (_e *UserRepository_Expecter) List(ctx interface{}, filter interface{}) *UserRepository_List_Call <span class="cov0" title="0">{
+        return &amp;UserRepository_List_Call{Call: _e.mock.On("List", ctx, filter)}
+}</span>
+
+func (_c *UserRepository_List_Call) Run(run func(ctx context.Context, filter domain.ListFilter)) *UserRepository_List_Call <span class="cov0" title="0">{
+        _c.Call.Run(func(args mock.Arguments) </span><span class="cov0" title="0">{
+                run(args[0].(context.Context), args[1].(domain.ListFilter))
+        }</span>)
+        <span class="cov0" title="0">return _c</span>
+}
+
+func (_c *UserRepository_List_Call) Return(_a0 *domain.UserList, _a1 error) *UserRepository_List_Call <span class="cov0" title="0">{
+        _c.Call.Return(_a0, _a1)
+        return _c
+}</span>
+
+func (_c *UserRepository_List_Call) RunAndReturn(run func(context.Context, domain.ListFilter) (*domain.UserList, error)) *UserRepository_List_Call <span class="cov0" title="0">{
+        _c.Call.Return(run)
+        return _c
+}</span>
+
+// Update provides a mock function with given fields: ctx, id, input
+func (_m *UserRepository) Update(ctx context.Context, id int64, input domain.UpdateUserInput) (*domain.User, error) <span class="cov0" title="0">{
+        ret := _m.Called(ctx, id, input)
+
+        if len(ret) == 0 </span><span class="cov0" title="0">{
+                panic("no return value specified for Update")</span>
+        }
+
+        <span class="cov0" title="0">var r0 *domain.User
+        var r1 error
+        if rf, ok := ret.Get(0).(func(context.Context, int64, domain.UpdateUserInput) (*domain.User, error)); ok </span><span class="cov0" title="0">{
+                return rf(ctx, id, input)
+        }</span>
+        <span class="cov0" title="0">if rf, ok := ret.Get(0).(func(context.Context, int64, domain.UpdateUserInput) *domain.User); ok </span><span class="cov0" title="0">{
+                r0 = rf(ctx, id, input)
+        }</span> else<span class="cov0" title="0"> {
+                if ret.Get(0) != nil </span><span class="cov0" title="0">{
+                        r0 = ret.Get(0).(*domain.User)
+                }</span>
+        }
+
+        <span class="cov0" title="0">if rf, ok := ret.Get(1).(func(context.Context, int64, domain.UpdateUserInput) error); ok </span><span class="cov0" title="0">{
+                r1 = rf(ctx, id, input)
+        }</span> else<span class="cov0" title="0"> {
+                r1 = ret.Error(1)
+        }</span>
+
+        <span class="cov0" title="0">return r0, r1</span>
+}
+
+// UserRepository_Update_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Update'
+type UserRepository_Update_Call struct {
+        *mock.Call
+}
+
+// Update is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id int64
+//   - input domain.UpdateUserInput
+func (_e *UserRepository_Expecter) Update(ctx interface{}, id interface{}, input interface{}) *UserRepository_Update_Call <span class="cov0" title="0">{
+        return &amp;UserRepository_Update_Call{Call: _e.mock.On("Update", ctx, id, input)}
+}</span>
+
+func (_c *UserRepository_Update_Call) Run(run func(ctx context.Context, id int64, input domain.UpdateUserInput)) *UserRepository_Update_Call <span class="cov0" title="0">{
+        _c.Call.Run(func(args mock.Arguments) </span><span class="cov0" title="0">{
+                run(args[0].(context.Context), args[1].(int64), args[2].(domain.UpdateUserInput))
+        }</span>)
+        <span class="cov0" title="0">return _c</span>
+}
+
+func (_c *UserRepository_Update_Call) Return(_a0 *domain.User, _a1 error) *UserRepository_Update_Call <span class="cov0" title="0">{
+        _c.Call.Return(_a0, _a1)
+        return _c
+}</span>
+
+func (_c *UserRepository_Update_Call) RunAndReturn(run func(context.Context, int64, domain.UpdateUserInput) (*domain.User, error)) *UserRepository_Update_Call <span class="cov0" title="0">{
+        _c.Call.Return(run)
+        return _c
+}</span>
+
+// NewUserRepository creates a new instance of UserRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// The first argument is typically a *testing.T value.
+func NewUserRepository(t interface {
+        mock.TestingT
+        Cleanup(func())
+}) *UserRepository <span class="cov0" title="0">{
+        mock := &amp;UserRepository{}
+        mock.Mock.Test(t)
+
+        t.Cleanup(func() </span><span class="cov0" title="0">{ mock.AssertExpectations(t) }</span>)
+
+        <span class="cov0" title="0">return mock</span>
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package postgres
 
 import (
         "context"
@@ -1492,7 +2120,6 @@ import (
         "github.com/jackc/pgx/v5/pgxpool"
 )
 
-// NewPool creates and verifies a PostgreSQL connection pool.
 func NewPool(dsn string) (*pgxpool.Pool, error) <span class="cov0" title="0">{
         pool, err := pgxpool.New(context.Background(), dsn)
         if err != nil </span><span class="cov0" title="0">{
@@ -1507,7 +2134,7 @@ func NewPool(dsn string) (*pgxpool.Pool, error) <span class="cov0" title="0">{
 }
 </pre>
 		
-		<pre class="file" id="file8" style="display: none">package postgres
+		<pre class="file" id="file11" style="display: none">package postgres
 
 import (
         "context"
@@ -1522,17 +2149,14 @@ import (
         "github.com/jackc/pgx/v5/pgxpool"
 )
 
-// UserRepo implements domain.UserRepository using PostgreSQL.
 type UserRepo struct {
         db *pgxpool.Pool
 }
 
-// NewUserRepo creates a new UserRepo.
 func NewUserRepo(db *pgxpool.Pool) *UserRepo <span class="cov8" title="1">{
         return &amp;UserRepo{db: db}
 }</span>
 
-// Create inserts a new user into the database.
 func (r *UserRepo) Create(ctx context.Context, user *domain.User) (*domain.User, error) <span class="cov8" title="1">{
         query := `
                 INSERT INTO users (name, email, password, created_at, updated_at)
@@ -1556,7 +2180,6 @@ func (r *UserRepo) Create(ctx context.Context, user *domain.User) (*domain.User,
         <span class="cov8" title="1">return result, nil</span>
 }
 
-// GetByID fetches a single user by primary key.
 func (r *UserRepo) GetByID(ctx context.Context, id int64) (*domain.User, error) <span class="cov8" title="1">{
         query := `SELECT id, name, email, password, created_at, updated_at FROM users WHERE id = $1`
 
@@ -1574,7 +2197,6 @@ func (r *UserRepo) GetByID(ctx context.Context, id int64) (*domain.User, error) 
         <span class="cov8" title="1">return user, nil</span>
 }
 
-// GetByEmail fetches a user by their email address.
 func (r *UserRepo) GetByEmail(ctx context.Context, email string) (*domain.User, error) <span class="cov8" title="1">{
         query := `SELECT id, name, email, password, created_at, updated_at FROM users WHERE email = $1`
 
@@ -1592,11 +2214,9 @@ func (r *UserRepo) GetByEmail(ctx context.Context, email string) (*domain.User, 
         <span class="cov8" title="1">return user, nil</span>
 }
 
-// List returns a paginated list of users.
 func (r *UserRepo) List(ctx context.Context, filter domain.ListFilter) (*domain.UserList, error) <span class="cov8" title="1">{
         offset := (filter.Page - 1) * filter.Limit
 
-        // Count total
         var total int64
         if err := r.db.QueryRow(ctx, `SELECT COUNT(*) FROM users`).Scan(&amp;total); err != nil </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("postgres: count users: %w", err)
@@ -1628,7 +2248,6 @@ func (r *UserRepo) List(ctx context.Context, filter domain.ListFilter) (*domain.
         }, nil</span>
 }
 
-// Update modifies an existing user's fields.
 func (r *UserRepo) Update(ctx context.Context, id int64, input domain.UpdateUserInput) (*domain.User, error) <span class="cov8" title="1">{
         setClauses := []string{}
         args := []interface{}{}
@@ -1677,7 +2296,6 @@ func (r *UserRepo) Update(ctx context.Context, id int64, input domain.UpdateUser
         <span class="cov8" title="1">return user, nil</span>
 }
 
-// Delete removes a user by ID.
 func (r *UserRepo) Delete(ctx context.Context, id int64) error <span class="cov8" title="1">{
         result, err := r.db.Exec(ctx, `DELETE FROM users WHERE id = $1`, id)
         if err != nil </span><span class="cov0" title="0">{
@@ -1690,7 +2308,7 @@ func (r *UserRepo) Delete(ctx context.Context, id int64) error <span class="cov8
 }
 </pre>
 		
-		<pre class="file" id="file9" style="display: none">package redis
+		<pre class="file" id="file12" style="display: none">package redis
 
 import (
         "context"
@@ -1699,7 +2317,6 @@ import (
         "github.com/redis/go-redis/v9"
 )
 
-// NewClient creates and verifies a Redis client connection.
 func NewClient(addr, password string, db int) (*redis.Client, error) <span class="cov0" title="0">{
         client := redis.NewClient(&amp;redis.Options{
                 Addr:     addr,
@@ -1715,7 +2332,7 @@ func NewClient(addr, password string, db int) (*redis.Client, error) <span class
 }
 </pre>
 		
-		<pre class="file" id="file10" style="display: none">package redis
+		<pre class="file" id="file13" style="display: none">package redis
 
 import (
         "context"
@@ -1730,13 +2347,11 @@ import (
 
 const defaultTTL = 5 * time.Minute
 
-// UserCache implements domain.UserCache using Redis.
 type UserCache struct {
         client *redis.Client
         ttl    time.Duration
 }
 
-// NewUserCache creates a new UserCache.
 func NewUserCache(client *redis.Client) *UserCache <span class="cov0" title="0">{
         return &amp;UserCache{client: client, ttl: defaultTTL}
 }</span>
@@ -1745,11 +2360,10 @@ func userKey(id int64) string <span class="cov0" title="0">{
         return fmt.Sprintf("user:%d", id)
 }</span>
 
-// Get retrieves a user from cache by ID.
 func (c *UserCache) Get(ctx context.Context, id int64) (*domain.User, error) <span class="cov0" title="0">{
         data, err := c.client.Get(ctx, userKey(id)).Bytes()
         if err != nil </span><span class="cov0" title="0">{
-                return nil, err // redis.Nil if not found
+                return nil, err
         }</span>
 
         <span class="cov0" title="0">user := &amp;domain.User{}
@@ -1760,7 +2374,6 @@ func (c *UserCache) Get(ctx context.Context, id int64) (*domain.User, error) <sp
         <span class="cov0" title="0">return user, nil</span>
 }
 
-// Set stores a user in cache.
 func (c *UserCache) Set(ctx context.Context, user *domain.User) error <span class="cov0" title="0">{
         data, err := json.Marshal(user)
         if err != nil </span><span class="cov0" title="0">{
@@ -1770,13 +2383,12 @@ func (c *UserCache) Set(ctx context.Context, user *domain.User) error <span clas
         <span class="cov0" title="0">return c.client.Set(ctx, userKey(user.ID), data, c.ttl).Err()</span>
 }
 
-// Delete removes a user from cache.
 func (c *UserCache) Delete(ctx context.Context, id int64) error <span class="cov0" title="0">{
         return c.client.Del(ctx, userKey(id)).Err()
 }</span>
 </pre>
 		
-		<pre class="file" id="file11" style="display: none">package httputility
+		<pre class="file" id="file14" style="display: none">package httputility
 
 import (
         "encoding/json"
@@ -1787,19 +2399,16 @@ import (
         "github.com/gin-gonic/gin"
 )
 
-// ErrorResponse is the standard error response structure.
 type ErrorResponse struct {
         Code    string `json:"code"`
         Message string `json:"message"`
         Details string `json:"details,omitempty"`
 }
 
-// SuccessResponse is the standard success response structure.
 type SuccessResponse struct {
         Data interface{} `json:"data,omitempty"`
 }
 
-// RespondError sends a structured error response.
 func RespondError(c *gin.Context, err error) <span class="cov0" title="0">{
         if err == nil </span><span class="cov0" title="0">{
                 c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -1809,7 +2418,6 @@ func RespondError(c *gin.Context, err error) <span class="cov0" title="0">{
                 return
         }</span>
 
-        // Check if it's an AppError
         <span class="cov0" title="0">appErr, ok := domain.IsAppError(err)
         if ok </span><span class="cov0" title="0">{
                 statusCode := mapErrorCodeToStatus(appErr.Code)
@@ -1821,14 +2429,12 @@ func RespondError(c *gin.Context, err error) <span class="cov0" title="0">{
                 return
         }</span>
 
-        // Default to internal error for non-AppError
         <span class="cov0" title="0">c.JSON(http.StatusInternalServerError, ErrorResponse{
                 Code:    "INTERNAL_ERROR",
                 Message: "an unexpected error occurred",
         })</span>
 }
 
-// RespondSuccess sends a success response.
 func RespondSuccess(c *gin.Context, statusCode int, data interface{}) <span class="cov0" title="0">{
         if statusCode == http.StatusNoContent </span><span class="cov0" title="0">{
                 c.Status(http.StatusNoContent)
@@ -1837,7 +2443,6 @@ func RespondSuccess(c *gin.Context, statusCode int, data interface{}) <span clas
         <span class="cov0" title="0">c.JSON(statusCode, data)</span>
 }
 
-// mapErrorCodeToStatus maps error codes to HTTP status codes.
 func mapErrorCodeToStatus(code domain.ErrorCode) int <span class="cov0" title="0">{
         switch code </span>{
         case domain.ErrCodeNotFound:<span class="cov0" title="0">
@@ -1859,8 +2464,7 @@ func mapErrorCodeToStatus(code domain.ErrorCode) int <span class="cov0" title="0
         }
 }
 
-// ValidateAndRespond validates a struct and responds with error if invalid.
-func ValidateAndRespond(c *gin.Context, v interface{}, validate func(interface{}) error) bool <span class="cov0" title="0">{
+func ValidateAndRespond(c *gin.Context, v any, validate func(any) error) bool <span class="cov0" title="0">{
         if err := validate(v); err != nil </span><span class="cov0" title="0">{
                 RespondError(c, domain.NewValidationError("validation failed", err.Error()))
                 return false
@@ -1868,15 +2472,14 @@ func ValidateAndRespond(c *gin.Context, v interface{}, validate func(interface{}
         <span class="cov0" title="0">return true</span>
 }
 
-// WriteJSON writes JSON to response.
-func WriteJSON(c *gin.Context, statusCode int, v interface{}) error <span class="cov0" title="0">{
+func WriteJSON(c *gin.Context, statusCode int, v any) error <span class="cov0" title="0">{
         c.Header("Content-Type", "application/json")
         c.Writer.WriteHeader(statusCode)
         return json.NewEncoder(c.Writer).Encode(v)
 }</span>
 </pre>
 		
-		<pre class="file" id="file12" style="display: none">package logger
+		<pre class="file" id="file15" style="display: none">package logger
 
 import (
         "context"
@@ -1884,12 +2487,10 @@ import (
         "os"
 )
 
-// Logger wraps slog.Logger for application use.
 type Logger struct {
         *slog.Logger
 }
 
-// New creates a new structured logger.
 func New(isDev bool) *Logger <span class="cov0" title="0">{
         var opts *slog.HandlerOptions
         if isDev </span><span class="cov0" title="0">{
@@ -1906,18 +2507,15 @@ func New(isDev bool) *Logger <span class="cov0" title="0">{
         return &amp;Logger{slog.New(handler)}</span>
 }
 
-// WithContext returns a new logger with context.
 func (l *Logger) WithContext(ctx context.Context) *Logger <span class="cov0" title="0">{
         return &amp;Logger{l.Logger.With(slog.Any("context", ctx))}
 }</span>
 
-// WithError adds error to the logger.
 func (l *Logger) WithError(err error) *Logger <span class="cov0" title="0">{
         return &amp;Logger{l.Logger.With(slog.Any("error", err))}
 }</span>
 
-// WithFields adds multiple fields to the logger.
-func (l *Logger) WithFields(fields map[string]interface{}) *Logger <span class="cov0" title="0">{
+func (l *Logger) WithFields(fields map[string]any) *Logger <span class="cov0" title="0">{
         var args []any
         for k, v := range fields </span><span class="cov0" title="0">{
                 args = append(args, slog.Any(k, v))
@@ -1925,24 +2523,21 @@ func (l *Logger) WithFields(fields map[string]interface{}) *Logger <span class="
         <span class="cov0" title="0">return &amp;Logger{l.Logger.With(args...)}</span>
 }
 
-// Global logger instance
 var globalLogger *Logger
 
-// Initialize sets up the global logger.
 func Initialize(isDev bool) <span class="cov0" title="0">{
         globalLogger = New(isDev)
 }</span>
 
-// Get returns the global logger.
 func Get() *Logger <span class="cov0" title="0">{
         if globalLogger == nil </span><span class="cov0" title="0">{
-                globalLogger = New(false) // default to production mode
+                globalLogger = New(false)
         }</span>
         <span class="cov0" title="0">return globalLogger</span>
 }
 </pre>
 		
-		<pre class="file" id="file13" style="display: none">package ratelimit
+		<pre class="file" id="file16" style="display: none">package ratelimit
 
 import (
         "sync"
@@ -1951,16 +2546,14 @@ import (
         "golang.org/x/time/rate"
 )
 
-// Limiter manages rate limits for different keys (IPs, user IDs, etc).
 type Limiter struct {
         limiters map[string]*rate.Limiter
         mu       sync.RWMutex
-        rps      float64        // requests per second
-        burst    int            // burst size
-        cleanup  time.Duration  // cleanup interval for old limiters
+        rps      float64
+        burst    int
+        cleanup  time.Duration
 }
 
-// NewLimiter creates a new rate limiter with specified requests per second and burst size.
 func NewLimiter(rps float64, burst int) *Limiter <span class="cov8" title="1">{
         l := &amp;Limiter{
                 limiters: make(map[string]*rate.Limiter),
@@ -1969,19 +2562,15 @@ func NewLimiter(rps float64, burst int) *Limiter <span class="cov8" title="1">{
                 cleanup:  5 * time.Minute,
         }
 
-        // Start cleanup goroutine
         go l.cleanupLimiters()
 
         return l
 }</span>
-
-// Allow checks if a request from the given key is allowed.
 func (l *Limiter) Allow(key string) bool <span class="cov8" title="1">{
         limiter := l.getLimiter(key)
         return limiter.Allow()
 }</span>
 
-// getLimiter retrieves or creates a limiter for the given key.
 func (l *Limiter) getLimiter(key string) *rate.Limiter <span class="cov8" title="1">{
         l.mu.RLock()
         limiter, exists := l.limiters[key]
@@ -1994,33 +2583,25 @@ func (l *Limiter) getLimiter(key string) *rate.Limiter <span class="cov8" title=
         <span class="cov8" title="1">l.mu.Lock()
         defer l.mu.Unlock()
 
-        // Double-check locking
         if limiter, exists := l.limiters[key]; exists </span><span class="cov0" title="0">{
                 return limiter
         }</span>
-
-        // Create new limiter for this key
         <span class="cov8" title="1">limiter = rate.NewLimiter(rate.Limit(l.rps), l.burst)
         l.limiters[key] = limiter
 
         return limiter</span>
 }
 
-// cleanupLimiters periodically removes old unused limiters to prevent memory leaks.
 func (l *Limiter) cleanupLimiters() <span class="cov8" title="1">{
         ticker := time.NewTicker(l.cleanup)
         defer ticker.Stop()
 
         for range ticker.C </span><span class="cov0" title="0">{
                 l.mu.Lock()
-                // Remove limiters that haven't been used recently (AllowN returns 0 tokens)
                 for key, limiter := range l.limiters </span><span class="cov0" title="0">{
-                        // Check if limiter has available tokens
                         if !limiter.AllowN(time.Now(), 0) </span><span class="cov0" title="0">{
-                                // If it doesn't allow 0 tokens, it hasn't been reset, so keep it
                                 continue</span>
                         }
-                        // Remove unused limiters
                         <span class="cov0" title="0">if limiter.Tokens() == float64(l.burst) </span><span class="cov0" title="0">{
                                 delete(l.limiters, key)
                         }</span>
@@ -2029,14 +2610,12 @@ func (l *Limiter) cleanupLimiters() <span class="cov8" title="1">{
         }
 }
 
-// Reset resets the limiter for a given key.
 func (l *Limiter) Reset(key string) <span class="cov8" title="1">{
         l.mu.Lock()
         defer l.mu.Unlock()
         delete(l.limiters, key)
 }</span>
 
-// ResetAll resets all limiters.
 func (l *Limiter) ResetAll() <span class="cov8" title="1">{
         l.mu.Lock()
         defer l.mu.Unlock()
@@ -2044,7 +2623,7 @@ func (l *Limiter) ResetAll() <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file14" style="display: none">package service
+		<pre class="file" id="file17" style="display: none">package service
 
 import (
         "context"
@@ -2155,7 +2734,7 @@ func (s *AuthService) ValidatePassword(password string) error <span class="cov8"
 
 func (s *AuthService) Login(ctx context.Context, email, password string) (string, string, *domain.User, error) <span class="cov8" title="1">{
         // Rate limiting check
-        if !s.rateLimiter.IsAllowed(email) </span><span class="cov8" title="1">{
+        if !s.rateLimiter.IsAllowed(email) </span><span class="cov0" title="0">{
                 s.logger.Printf("Rate limit exceeded for email: %s", email)
                 return "", "", nil, errors.New("too many login attempts, please try again later")
         }</span>
@@ -2263,56 +2842,47 @@ func (s *AuthService) Logout(ctx context.Context, accessToken string) error <spa
 }</span>
 </pre>
 		
-		<pre class="file" id="file15" style="display: none">package service
+		<pre class="file" id="file18" style="display: none">package service
 
 import (
         "context"
 )
 
-// EmailProvider defines the interface for email providers (e.g., SMTP, SendGrid).
 type EmailProvider interface {
         Send(ctx context.Context, to, subject, body string) error
 }
 
-// MockEmailProvider is a mock implementation for testing.
 type MockEmailProvider struct {
 }
 
-// Send is a no-op mock implementation.
 func (m *MockEmailProvider) Send(ctx context.Context, to, subject, body string) error <span class="cov0" title="0">{
         return nil
 }</span>
 
-// NewMockEmailProvider creates a new mock email provider.
 func NewMockEmailProvider() EmailProvider <span class="cov0" title="0">{
         return &amp;MockEmailProvider{}
 }</span>
 
-// EmailService is a concrete implementation of domain.EmailService.
 type EmailService struct {
         provider EmailProvider
 }
 
-// NewEmailService creates a new EmailService with the given provider.
 func NewEmailService(provider EmailProvider) *EmailService <span class="cov0" title="0">{
         return &amp;EmailService{provider: provider}
 }</span>
 
-// SendWelcomeEmail sends a welcome email to the new user.
 func (es *EmailService) SendWelcomeEmail(ctx context.Context, email string, name string) error <span class="cov0" title="0">{
         subject := "Welcome to Our Service"
         body := "Hello " + name + ", welcome to our service!"
         return es.provider.Send(ctx, email, subject, body)
 }</span>
 
-// SendPasswordResetEmail sends a password reset email.
 func (es *EmailService) SendPasswordResetEmail(ctx context.Context, email string, resetLink string) error <span class="cov0" title="0">{
         subject := "Password Reset Request"
         body := "Click the link below to reset your password: " + resetLink
         return es.provider.Send(ctx, email, subject, body)
 }</span>
 
-// SendVerificationEmail sends an email verification email.
 func (es *EmailService) SendVerificationEmail(ctx context.Context, email string, verificationLink string) error <span class="cov0" title="0">{
         subject := "Verify Your Email"
         body := "Click the link below to verify your email: " + verificationLink
@@ -2320,7 +2890,7 @@ func (es *EmailService) SendVerificationEmail(ctx context.Context, email string,
 }</span>
 </pre>
 		
-		<pre class="file" id="file16" style="display: none">package service
+		<pre class="file" id="file19" style="display: none">package service
 
 import (
         "context"
@@ -2341,25 +2911,19 @@ type UserService struct {
         emailService domain.EmailService
 }
 
-// NewUserService creates a new UserService.
 func NewUserService(repo domain.UserRepository, cache domain.UserCache) *UserService <span class="cov8" title="1">{
         return &amp;UserService{repo: repo, cache: cache}
 }</span>
 
-// SetEmailService sets the email service for the user service.
 func (s *UserService) SetEmailService(emailService domain.EmailService) <span class="cov8" title="1">{
         s.emailService = emailService
 }</span>
 
-// CreateUser hashes the password and persists the new user.
 func (s *UserService) CreateUser(ctx context.Context, input domain.CreateUserInput) (*domain.User, error) <span class="cov8" title="1">{
-        // Check for duplicate email
         existing, _ := s.repo.GetByEmail(ctx, input.Email)
         if existing != nil </span><span class="cov8" title="1">{
                 return nil, domain.NewConflictError("email already registered", input.Email)
         }</span>
-
-        // Hash password
         <span class="cov8" title="1">hashed, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, domain.NewInternalError("failed to hash password", err)
@@ -2377,10 +2941,8 @@ func (s *UserService) CreateUser(ctx context.Context, input domain.CreateUserInp
                 return nil, domain.NewInternalError("failed to create user", err)
         }</span>
 
-        // Warm the cache
         <span class="cov8" title="1">_ = s.cache.Set(ctx, created)
 
-        // Send welcome email if email service is configured
         if s.emailService != nil </span><span class="cov8" title="1">{
                 _ = s.emailService.SendWelcomeEmail(ctx, created.Email, created.Name)
         }</span>
@@ -2388,17 +2950,12 @@ func (s *UserService) CreateUser(ctx context.Context, input domain.CreateUserInp
         <span class="cov8" title="1">return created, nil</span>
 }
 
-// GetUserByID returns a user, preferring the cache over the database.
 func (s *UserService) GetUserByID(ctx context.Context, id int64) (*domain.User, error) <span class="cov8" title="1">{
-        // Try cache first
         cached, err := s.cache.Get(ctx, id)
         if err == nil </span><span class="cov8" title="1">{
                 return cached, nil
         }</span>
-
-        // Cache miss — fall through to DB
         <span class="cov8" title="1">if !errors.Is(err, redis.Nil) </span><span class="cov8" title="1">{
-                // Log non-Nil cache errors but continue
                 logger.Get().Debug("cache miss", "id", id, "error", err)
         }</span>
 
@@ -2407,13 +2964,11 @@ func (s *UserService) GetUserByID(ctx context.Context, id int64) (*domain.User, 
                 return nil, domain.NewNotFoundError("user not found", formatInt(id))
         }</span>
 
-        // Hydrate cache for next request
         <span class="cov8" title="1">_ = s.cache.Set(ctx, user)
 
         return user, nil</span>
 }
 
-// ListUsers returns a paginated list of users.
 func (s *UserService) ListUsers(ctx context.Context, filter domain.ListFilter) (*domain.UserList, error) <span class="cov8" title="1">{
         if filter.Page &lt;= 0 </span><span class="cov8" title="1">{
                 filter.Page = 1
@@ -2424,31 +2979,27 @@ func (s *UserService) ListUsers(ctx context.Context, filter domain.ListFilter) (
         <span class="cov8" title="1">return s.repo.List(ctx, filter)</span>
 }
 
-// UpdateUser updates allowed user fields and invalidates the cache.
 func (s *UserService) UpdateUser(ctx context.Context, id int64, input domain.UpdateUserInput) (*domain.User, error) <span class="cov8" title="1">{
-        // Hash password if provided
-        if input.Password != nil </span><span class="cov8" title="1">{
+        if input.Password != nil </span><span class="cov0" title="0">{
                 hashed, err := bcrypt.GenerateFromPassword([]byte(*input.Password), bcrypt.DefaultCost)
                 if err != nil </span><span class="cov0" title="0">{
                         return nil, domain.NewInternalError("failed to hash password", err)
                 }</span>
-                <span class="cov8" title="1">h := string(hashed)
+                <span class="cov0" title="0">h := string(hashed)
                 input.Password = &amp;h</span>
         }
 
         <span class="cov8" title="1">updated, err := s.repo.Update(ctx, id, input)
-        if err != nil </span><span class="cov8" title="1">{
+        if err != nil </span><span class="cov0" title="0">{
                 return nil, domain.NewNotFoundError("user not found", formatInt(id))
         }</span>
 
-        // Invalidate stale cache entry
         <span class="cov8" title="1">_ = s.cache.Delete(ctx, id)
         _ = s.cache.Set(ctx, updated)
 
         return updated, nil</span>
 }
 
-// DeleteUser removes a user and evicts the cache.
 func (s *UserService) DeleteUser(ctx context.Context, id int64) error <span class="cov8" title="1">{
         if err := s.repo.Delete(ctx, id); err != nil </span><span class="cov8" title="1">{
                 return domain.NewNotFoundError("user not found", formatInt(id))
@@ -2457,13 +3008,12 @@ func (s *UserService) DeleteUser(ctx context.Context, id int64) error <span clas
         return nil</span>
 }
 
-// formatInt is a helper to convert int64 to string for error details.
 func formatInt(i int64) string <span class="cov8" title="1">{
         return fmt.Sprintf("%d", i)
 }</span>
 </pre>
 		
-		<pre class="file" id="file17" style="display: none">package testhelpers
+		<pre class="file" id="file20" style="display: none">package testhelpers
 
 import (
         "context"
@@ -2476,17 +3026,14 @@ import (
         "github.com/redis/go-redis/v9"
 )
 
-// MockUserRepository implements domain.UserRepository for testing
 type MockUserRepository struct {
-        mu     sync.RWMutex
-        users  map[int64]*domain.User
-        nextID int64
-        // Error injection
+        mu         sync.RWMutex
+        users      map[int64]*domain.User
+        nextID     int64
         shouldFail bool
         failErr    error
 }
 
-// NewMockUserRepository creates a new mock user repository
 func NewMockUserRepository() *MockUserRepository <span class="cov0" title="0">{
         return &amp;MockUserRepository{
                 users:  make(map[int64]*domain.User),
@@ -2494,7 +3041,6 @@ func NewMockUserRepository() *MockUserRepository <span class="cov0" title="0">{
         }
 }</span>
 
-// Create mocks user creation
 func (m *MockUserRepository) Create(ctx context.Context, u *domain.User) (*domain.User, error) <span class="cov0" title="0">{
         if m.shouldFail </span><span class="cov0" title="0">{
                 return nil, m.failErr
@@ -2503,7 +3049,6 @@ func (m *MockUserRepository) Create(ctx context.Context, u *domain.User) (*domai
         <span class="cov0" title="0">m.mu.Lock()
         defer m.mu.Unlock()
 
-        // Check email uniqueness
         for _, existing := range m.users </span><span class="cov0" title="0">{
                 if existing.Email == u.Email </span><span class="cov0" title="0">{
                         return nil, errors.New("email already registered")
@@ -2519,7 +3064,6 @@ func (m *MockUserRepository) Create(ctx context.Context, u *domain.User) (*domai
         return u, nil</span>
 }
 
-// GetByID mocks getting user by ID
 func (m *MockUserRepository) GetByID(ctx context.Context, id int64) (*domain.User, error) <span class="cov0" title="0">{
         if m.shouldFail </span><span class="cov0" title="0">{
                 return nil, m.failErr
@@ -2535,7 +3079,6 @@ func (m *MockUserRepository) GetByID(ctx context.Context, id int64) (*domain.Use
         <span class="cov0" title="0">return u, nil</span>
 }
 
-// GetByEmail mocks getting user by email
 func (m *MockUserRepository) GetByEmail(ctx context.Context, email string) (*domain.User, error) <span class="cov0" title="0">{
         if m.shouldFail </span><span class="cov0" title="0">{
                 return nil, m.failErr
@@ -2552,7 +3095,6 @@ func (m *MockUserRepository) GetByEmail(ctx context.Context, email string) (*dom
         <span class="cov0" title="0">return nil, errors.New("user not found")</span>
 }
 
-// List mocks listing users
 func (m *MockUserRepository) List(ctx context.Context, filter domain.ListFilter) (*domain.UserList, error) <span class="cov0" title="0">{
         if m.shouldFail </span><span class="cov0" title="0">{
                 return nil, m.failErr
@@ -2574,7 +3116,6 @@ func (m *MockUserRepository) List(ctx context.Context, filter domain.ListFilter)
         }, nil</span>
 }
 
-// Update mocks updating user
 func (m *MockUserRepository) Update(ctx context.Context, id int64, input domain.UpdateUserInput) (*domain.User, error) <span class="cov0" title="0">{
         if m.shouldFail </span><span class="cov0" title="0">{
                 return nil, m.failErr
@@ -2602,7 +3143,6 @@ func (m *MockUserRepository) Update(ctx context.Context, id int64, input domain.
         return u, nil</span>
 }
 
-// Delete mocks deleting user
 func (m *MockUserRepository) Delete(ctx context.Context, id int64) error <span class="cov0" title="0">{
         if m.shouldFail </span><span class="cov0" title="0">{
                 return m.failErr
@@ -2618,7 +3158,6 @@ func (m *MockUserRepository) Delete(ctx context.Context, id int64) error <span c
         return nil</span>
 }
 
-// SetupError injects an error for testing failure paths
 func (m *MockUserRepository) SetupError(err error) <span class="cov0" title="0">{
         m.mu.Lock()
         defer m.mu.Unlock()
@@ -2626,7 +3165,6 @@ func (m *MockUserRepository) SetupError(err error) <span class="cov0" title="0">
         m.failErr = err
 }</span>
 
-// ClearError clears injected errors
 func (m *MockUserRepository) ClearError() <span class="cov0" title="0">{
         m.mu.Lock()
         defer m.mu.Unlock()
@@ -2634,7 +3172,6 @@ func (m *MockUserRepository) ClearError() <span class="cov0" title="0">{
         m.failErr = nil
 }</span>
 
-// GetAllUsers returns all users for testing
 func (m *MockUserRepository) GetAllUsers() []*domain.User <span class="cov0" title="0">{
         m.mu.RLock()
         defer m.mu.RUnlock()
@@ -2646,32 +3183,28 @@ func (m *MockUserRepository) GetAllUsers() []*domain.User <span class="cov0" tit
         <span class="cov0" title="0">return users</span>
 }
 
-// MockUserCache implements domain.UserCache for testing
 type MockUserCache struct {
         mu    sync.RWMutex
         cache map[int64]*domain.User
 }
 
-// NewMockUserCache creates a new mock cache
 func NewMockUserCache() *MockUserCache <span class="cov0" title="0">{
         return &amp;MockUserCache{
                 cache: make(map[int64]*domain.User),
         }
 }</span>
 
-// Get mocks cache get
 func (m *MockUserCache) Get(ctx context.Context, id int64) (*domain.User, error) <span class="cov0" title="0">{
         m.mu.RLock()
         defer m.mu.RUnlock()
 
         u, ok := m.cache[id]
         if !ok </span><span class="cov0" title="0">{
-                return nil, redis.Nil // Cache miss
+                return nil, redis.Nil
         }</span>
         <span class="cov0" title="0">return u, nil</span>
 }
 
-// Set mocks cache set
 func (m *MockUserCache) Set(ctx context.Context, u *domain.User) error <span class="cov0" title="0">{
         m.mu.Lock()
         defer m.mu.Unlock()
@@ -2680,7 +3213,6 @@ func (m *MockUserCache) Set(ctx context.Context, u *domain.User) error <span cla
         return nil
 }</span>
 
-// Delete mocks cache delete
 func (m *MockUserCache) Delete(ctx context.Context, id int64) error <span class="cov0" title="0">{
         m.mu.Lock()
         defer m.mu.Unlock()
@@ -2690,7 +3222,7 @@ func (m *MockUserCache) Delete(ctx context.Context, id int64) error <span class=
 }</span>
 </pre>
 		
-		<pre class="file" id="file18" style="display: none">package testhelpers
+		<pre class="file" id="file21" style="display: none">package testhelpers
 
 import (
         "context"
@@ -2702,14 +3234,12 @@ import (
         "github.com/testcontainers/testcontainers-go/wait"
 )
 
-// PostgresContainer manages a PostgreSQL testcontainer
 type PostgresContainer struct {
         container testcontainers.Container
         pool      *pgxpool.Pool
         DSN       string
 }
 
-// StartPostgresContainer starts a PostgreSQL container for testing
 func StartPostgresContainer(ctx context.Context) (*PostgresContainer, error) <span class="cov0" title="0">{
         req := testcontainers.ContainerRequest{
                 Image:        "postgres:16-alpine",
@@ -2732,7 +3262,6 @@ func StartPostgresContainer(ctx context.Context) (*PostgresContainer, error) <sp
                 return nil, fmt.Errorf("failed to start postgres container: %w", err)
         }</span>
 
-        // Get the container host and port
         <span class="cov0" title="0">host, err := container.Host(ctx)
         if err != nil </span><span class="cov0" title="0">{
                 container.Terminate(ctx)
@@ -2745,7 +3274,6 @@ func StartPostgresContainer(ctx context.Context) (*PostgresContainer, error) <sp
                 return nil, fmt.Errorf("failed to get container port: %w", err)
         }</span>
 
-        // Create connection pool
         <span class="cov0" title="0">dsn := fmt.Sprintf("postgres://postgres:123456@%s:%s/userdb?sslmode=disable",
                 host, port.Port())
 
@@ -2755,7 +3283,6 @@ func StartPostgresContainer(ctx context.Context) (*PostgresContainer, error) <sp
                 return nil, fmt.Errorf("failed to create pool: %w", err)
         }</span>
 
-        // Verify connection
         <span class="cov0" title="0">if err := pool.Ping(ctx); err != nil </span><span class="cov0" title="0">{
                 pool.Close()
                 container.Terminate(ctx)
@@ -2769,12 +3296,9 @@ func StartPostgresContainer(ctx context.Context) (*PostgresContainer, error) <sp
         }, nil</span>
 }
 
-// GetPool returns the database connection pool
 func (pc *PostgresContainer) GetPool() *pgxpool.Pool <span class="cov0" title="0">{
         return pc.pool
 }</span>
-
-// RunMigrations runs SQL migrations
 func (pc *PostgresContainer) RunMigrations(ctx context.Context, migrations ...string) error <span class="cov0" title="0">{
         for _, migration := range migrations </span><span class="cov0" title="0">{
                 if _, err := pc.pool.Exec(ctx, migration); err != nil </span><span class="cov0" title="0">{
@@ -2784,7 +3308,6 @@ func (pc *PostgresContainer) RunMigrations(ctx context.Context, migrations ...st
         <span class="cov0" title="0">return nil</span>
 }
 
-// Terminate stops the container
 func (pc *PostgresContainer) Terminate(ctx context.Context) error <span class="cov0" title="0">{
         if pc.pool != nil </span><span class="cov0" title="0">{
                 pc.pool.Close()
@@ -2796,7 +3319,7 @@ func (pc *PostgresContainer) Terminate(ctx context.Context) error <span class="c
 }
 </pre>
 		
-		<pre class="file" id="file19" style="display: none">package grpc
+		<pre class="file" id="file22" style="display: none">package grpc
 
 import (
         "context"
@@ -2810,13 +3333,11 @@ import (
         "google.golang.org/grpc/status"
 )
 
-// Handler implements pb.UserServiceServer.
 type Handler struct {
         pb.UnimplementedUserServiceServer
         svc *service.UserService
 }
 
-// NewHandler creates a new gRPC Handler.
 func NewHandler(svc *service.UserService) *Handler <span class="cov0" title="0">{
         return &amp;Handler{svc: svc}
 }</span>
@@ -2831,7 +3352,6 @@ func toProtoUser(u *domain.User) *pb.UserResponse <span class="cov0" title="0">{
         }
 }</span>
 
-// CreateUser creates a new user.
 func (h *Handler) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.UserResponse, error) <span class="cov0" title="0">{
         if req.Name == "" || req.Email == "" || req.Password == "" </span><span class="cov0" title="0">{
                 return nil, status.Error(codes.InvalidArgument, "name, email, and password are required")
@@ -2852,7 +3372,6 @@ func (h *Handler) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*p
         <span class="cov0" title="0">return toProtoUser(user), nil</span>
 }
 
-// GetUserByID fetches a user by ID.
 func (h *Handler) GetUserByID(ctx context.Context, req *pb.GetUserByIDRequest) (*pb.UserResponse, error) <span class="cov0" title="0">{
         if req.Id == 0 </span><span class="cov0" title="0">{
                 return nil, status.Error(codes.InvalidArgument, "id is required")
@@ -2869,7 +3388,6 @@ func (h *Handler) GetUserByID(ctx context.Context, req *pb.GetUserByIDRequest) (
         <span class="cov0" title="0">return toProtoUser(user), nil</span>
 }
 
-// ListUsers returns a paginated list of users.
 func (h *Handler) ListUsers(ctx context.Context, req *pb.ListUsersRequest) (*pb.ListUsersResponse, error) <span class="cov0" title="0">{
         page := int(req.Page)
         limit := int(req.Limit)
@@ -2903,7 +3421,6 @@ func (h *Handler) ListUsers(ctx context.Context, req *pb.ListUsersRequest) (*pb.
         <span class="cov0" title="0">return resp, nil</span>
 }
 
-// UpdateUser updates an existing user.
 func (h *Handler) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UserResponse, error) <span class="cov0" title="0">{
         if req.Id == 0 </span><span class="cov0" title="0">{
                 return nil, status.Error(codes.InvalidArgument, "id is required")
@@ -2931,7 +3448,6 @@ func (h *Handler) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*p
         <span class="cov0" title="0">return toProtoUser(user), nil</span>
 }
 
-// DeleteUser removes a user by ID.
 func (h *Handler) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) <span class="cov0" title="0">{
         if req.Id == 0 </span><span class="cov0" title="0">{
                 return nil, status.Error(codes.InvalidArgument, "id is required")
@@ -2948,7 +3464,7 @@ func (h *Handler) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*p
 }
 </pre>
 		
-		<pre class="file" id="file20" style="display: none">package grpc
+		<pre class="file" id="file23" style="display: none">package grpc
 
 import (
         "context"
@@ -2968,7 +3484,6 @@ type contextKey string
 
 const userIDContextKey contextKey = "userID"
 
-// LoggingInterceptor logs gRPC requests.
 func LoggingInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) <span class="cov0" title="0">{
         start := time.Now()
         resp, err := handler(ctx, req)
@@ -2978,7 +3493,6 @@ func LoggingInterceptor(ctx context.Context, req interface{}, info *grpc.UnarySe
         return resp, err
 }</span>
 
-// NewAuthInterceptor validates metadata and attaches the authenticated user ID to context.
 func NewAuthInterceptor(tokenManager *auth.Manager) grpc.UnaryServerInterceptor <span class="cov0" title="0">{
         return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) </span><span class="cov0" title="0">{
                 md, ok := metadata.FromIncomingContext(ctx)
@@ -2993,7 +3507,6 @@ func NewAuthInterceptor(tokenManager *auth.Manager) grpc.UnaryServerInterceptor 
 
                 <span class="cov0" title="0">token := tokens[0]
 
-                // Support both "Bearer token" and direct "token" formats
                 token = strings.TrimPrefix(token, "Bearer ")
 
                 userID, err := tokenManager.ValidateAccessToken(token)
@@ -3006,19 +3519,17 @@ func NewAuthInterceptor(tokenManager *auth.Manager) grpc.UnaryServerInterceptor 
         }
 }
 
-// UserIDFromContext returns the authenticated user ID stored in context.
 func UserIDFromContext(ctx context.Context) (int64, bool) <span class="cov0" title="0">{
         userID, ok := ctx.Value(userIDContextKey).(int64)
         return userID, ok
 }</span>
 
-// ContextWithUserID stores the authenticated user ID in the provided context.
 func ContextWithUserID(ctx context.Context, userID int64) context.Context <span class="cov0" title="0">{
         return context.WithValue(ctx, userIDContextKey, userID)
 }</span>
 </pre>
 		
-		<pre class="file" id="file21" style="display: none">package grpc
+		<pre class="file" id="file24" style="display: none">package grpc
 
 import (
         "context"
@@ -3031,11 +3542,9 @@ import (
         "google.golang.org/grpc/status"
 )
 
-// UnaryRateLimitInterceptor creates a unary interceptor for gRPC rate limiting.
-// It uses the client IP address as the key for rate limiting.
+
 func UnaryRateLimitInterceptor(limiter *ratelimit.Limiter) grpc.UnaryServerInterceptor <span class="cov8" title="1">{
         return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) </span><span class="cov8" title="1">{
-                // Get client IP from peer
                 var clientIP string
                 if p, ok := peer.FromContext(ctx); ok </span><span class="cov8" title="1">{
                         clientIP = p.Addr.String()
@@ -3056,11 +3565,9 @@ func UnaryRateLimitInterceptor(limiter *ratelimit.Limiter) grpc.UnaryServerInter
         }
 }
 
-// StreamRateLimitInterceptor creates a stream interceptor for gRPC rate limiting.
-// It uses the client IP address as the key for rate limiting.
+
 func StreamRateLimitInterceptor(limiter *ratelimit.Limiter) grpc.StreamServerInterceptor <span class="cov8" title="1">{
         return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error </span><span class="cov8" title="1">{
-                // Get client IP from peer
                 var clientIP string
                 if p, ok := peer.FromContext(ss.Context()); ok </span><span class="cov8" title="1">{
                         clientIP = p.Addr.String()
@@ -3082,7 +3589,7 @@ func StreamRateLimitInterceptor(limiter *ratelimit.Limiter) grpc.StreamServerInt
 }
 </pre>
 		
-		<pre class="file" id="file22" style="display: none">package http
+		<pre class="file" id="file25" style="display: none">package http
 
 import (
         "net/http"
@@ -3099,14 +3606,12 @@ import (
 
 var validate = validator.New()
 
-// Handler holds the HTTP handlers for user operations.
 type Handler struct {
         svc          *service.UserService
         authSvc      *service.AuthService
         emailSvc     *service.EmailService
 }
 
-// NewHandler creates a new HTTP Handler.
 func NewHandler(svc *service.UserService, authSvc *service.AuthService, emailSvc *service.EmailService) *Handler <span class="cov0" title="0">{
         return &amp;Handler{svc: svc, authSvc: authSvc, emailSvc: emailSvc}
 }</span>
@@ -3397,7 +3902,6 @@ func (h *Handler) DeleteUser(c *gin.Context) <span class="cov0" title="0">{
 // @Security     BearerAuth
 // @Router       /email/send [post]
 func (h *Handler) SendEmail(c *gin.Context) <span class="cov0" title="0">{
-        // Verify user is authenticated
         userID, ok := UserIDFromContext(c.Request.Context())
         if !ok </span><span class="cov0" title="0">{
                 httputility.RespondError(c, domain.NewUnauthorizedError("unauthorized"))
@@ -3415,14 +3919,12 @@ func (h *Handler) SendEmail(c *gin.Context) <span class="cov0" title="0">{
                 return
         }</span>
 
-        // Log the request
         <span class="cov0" title="0">logger.Get().Info("email request",
                 "user_id", userID,
                 "recipient", input.To,
                 "template", input.Template,
         )
 
-        // Send email based on template
         switch input.Template </span>{
         case "welcome":<span class="cov0" title="0">
                 name, ok := input.Data["name"]
@@ -3472,7 +3974,7 @@ func (h *Handler) SendEmail(c *gin.Context) <span class="cov0" title="0">{
 }
 </pre>
 		
-		<pre class="file" id="file23" style="display: none">package http
+		<pre class="file" id="file26" style="display: none">package http
 
 import (
         "context"
@@ -3484,20 +3986,17 @@ import (
         "github.com/redis/go-redis/v9"
 )
 
-// HealthResponse represents the health check response.
 type HealthResponse struct {
         Status    string             `json:"status"`
         Timestamp time.Time          `json:"timestamp"`
         Services  map[string]Service `json:"services"`
 }
 
-// Service represents a service health status.
 type Service struct {
         Status string `json:"status"`
         Error  string `json:"error,omitempty"`
 }
 
-// HealthCheck checks the health of all services.
 func HealthCheck(db *pgxpool.Pool, redisClient *redis.Client) gin.HandlerFunc <span class="cov0" title="0">{
         return func(c *gin.Context) </span><span class="cov0" title="0">{
                 ctx, cancel := context.WithTimeout(c.Request.Context(), 2*time.Second)
@@ -3508,7 +4007,6 @@ func HealthCheck(db *pgxpool.Pool, redisClient *redis.Client) gin.HandlerFunc <s
                         Services:  make(map[string]Service),
                 }
 
-                // Check Database
                 if err := db.Ping(ctx); err != nil </span><span class="cov0" title="0">{
                         response.Services["database"] = Service{
                                 Status: "down",
@@ -3518,7 +4016,6 @@ func HealthCheck(db *pgxpool.Pool, redisClient *redis.Client) gin.HandlerFunc <s
                         response.Services["database"] = Service{Status: "up"}
                 }</span>
 
-                // Check Redis
                 <span class="cov0" title="0">if err := redisClient.Ping(ctx).Err(); err != nil </span><span class="cov0" title="0">{
                         response.Services["cache"] = Service{
                                 Status: "down",
@@ -3528,7 +4025,6 @@ func HealthCheck(db *pgxpool.Pool, redisClient *redis.Client) gin.HandlerFunc <s
                         response.Services["cache"] = Service{Status: "up"}
                 }</span>
 
-                // Determine overall status
                 <span class="cov0" title="0">allUp := true
                 for _, svc := range response.Services </span><span class="cov0" title="0">{
                         if svc.Status != "up" </span><span class="cov0" title="0">{
@@ -3548,7 +4044,7 @@ func HealthCheck(db *pgxpool.Pool, redisClient *redis.Client) gin.HandlerFunc <s
 }
 </pre>
 		
-		<pre class="file" id="file24" style="display: none">package http
+		<pre class="file" id="file27" style="display: none">package http
 
 import (
         "context"
@@ -3566,7 +4062,6 @@ type contextKey string
 
 const userIDContextKey contextKey = "userID"
 
-// LoggingMiddleware logs HTTP requests.
 func LoggingMiddleware() gin.HandlerFunc <span class="cov0" title="0">{
         return gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string </span><span class="cov0" title="0">{
                 return fmt.Sprintf("[%s] %s %s %d %s %s\n",
@@ -3580,7 +4075,6 @@ func LoggingMiddleware() gin.HandlerFunc <span class="cov0" title="0">{
         }</span>)
 }
 
-// NewAuthMiddleware validates an access token and stores the authenticated user ID in request context.
 func NewAuthMiddleware(tokenManager *auth.Manager) gin.HandlerFunc <span class="cov0" title="0">{
         return func(c *gin.Context) </span><span class="cov0" title="0">{
                 authHeader := c.GetHeader("Authorization")
@@ -3592,7 +4086,6 @@ func NewAuthMiddleware(tokenManager *auth.Manager) gin.HandlerFunc <span class="
 
                 <span class="cov0" title="0">token := authHeader
 
-                // Support both "Bearer token" and direct "token" formats
                 token = strings.TrimPrefix(authHeader, "Bearer ")
 
                 if token == "" </span><span class="cov0" title="0">{
@@ -3617,19 +4110,16 @@ func NewAuthMiddleware(tokenManager *auth.Manager) gin.HandlerFunc <span class="
         }
 }
 
-// UserIDFromContext returns the authenticated user ID stored in context.
 func UserIDFromContext(ctx context.Context) (int64, bool) <span class="cov8" title="1">{
         userID, ok := ctx.Value(userIDContextKey).(int64)
         return userID, ok
 }</span>
-
-// ContextWithUserID stores the authenticated user ID in the provided context.
 func ContextWithUserID(ctx context.Context, userID int64) context.Context <span class="cov8" title="1">{
         return context.WithValue(ctx, userIDContextKey, userID)
 }</span>
 </pre>
 		
-		<pre class="file" id="file25" style="display: none">package http
+		<pre class="file" id="file28" style="display: none">package http
 
 import (
         "context"
@@ -3642,7 +4132,6 @@ import (
         "github.com/google/uuid"
 )
 
-// RequestIDMiddleware adds a unique request ID to each request.
 func RequestIDMiddleware() gin.HandlerFunc <span class="cov8" title="1">{
         return func(c *gin.Context) </span><span class="cov8" title="1">{
                 requestID := c.GetHeader("X-Request-ID")
@@ -3653,7 +4142,6 @@ func RequestIDMiddleware() gin.HandlerFunc <span class="cov8" title="1">{
                 <span class="cov8" title="1">c.Set("request_id", requestID)
                 c.Header("X-Request-ID", requestID)
 
-                // Add request ID to context
                 ctx := context.WithValue(c.Request.Context(), "request_id", requestID)
                 c.Request = c.Request.WithContext(ctx)
 
@@ -3661,13 +4149,10 @@ func RequestIDMiddleware() gin.HandlerFunc <span class="cov8" title="1">{
         }
 }
 
-// RequestLoggingMiddleware logs all incoming requests.
 func RequestLoggingMiddleware() gin.HandlerFunc <span class="cov0" title="0">{
         return func(c *gin.Context) </span><span class="cov0" title="0">{
                 startTime := time.Now()
                 requestID := c.GetString("request_id")
-
-                // Log request
                 logger.Get().Info("incoming request",
                         "request_id", requestID,
                         "method", c.Request.Method,
@@ -3677,7 +4162,6 @@ func RequestLoggingMiddleware() gin.HandlerFunc <span class="cov0" title="0">{
 
                 c.Next()
 
-                // Log response
                 duration := time.Since(startTime)
                 logger.Get().Info("request completed",
                         "request_id", requestID,
@@ -3689,7 +4173,6 @@ func RequestLoggingMiddleware() gin.HandlerFunc <span class="cov0" title="0">{
         }</span>
 }
 
-// CORSMiddleware adds CORS headers to responses.
 func CORSMiddleware() gin.HandlerFunc <span class="cov0" title="0">{
         return func(c *gin.Context) </span><span class="cov0" title="0">{
                 c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
@@ -3706,7 +4189,6 @@ func CORSMiddleware() gin.HandlerFunc <span class="cov0" title="0">{
         }
 }
 
-// RecoveryMiddleware recovers from panics and logs them.
 func RecoveryMiddleware() gin.HandlerFunc <span class="cov0" title="0">{
         return gin.CustomRecovery(func(c *gin.Context, err interface{}) </span><span class="cov0" title="0">{
                 requestID := c.GetString("request_id")
@@ -3725,7 +4207,7 @@ func RecoveryMiddleware() gin.HandlerFunc <span class="cov0" title="0">{
 }
 </pre>
 		
-		<pre class="file" id="file26" style="display: none">package http
+		<pre class="file" id="file29" style="display: none">package http
 
 import (
         "go-usersvc-demo/internal/pkg/logger"
@@ -3734,8 +4216,7 @@ import (
         "github.com/gin-gonic/gin"
 )
 
-// RateLimitMiddleware creates a rate limit middleware for HTTP handlers.
-// It uses the client IP address as the key for rate limiting.
+
 func RateLimitMiddleware(limiter *ratelimit.Limiter) gin.HandlerFunc <span class="cov8" title="1">{
         return func(c *gin.Context) </span><span class="cov8" title="1">{
                 clientIP := c.ClientIP()
@@ -3760,14 +4241,11 @@ func RateLimitMiddleware(limiter *ratelimit.Limiter) gin.HandlerFunc <span class
         }
 }
 
-// AuthenticatedRateLimitMiddleware creates a rate limit middleware for authenticated endpoints.
-// It uses the user ID as the key for rate limiting when available, otherwise falls back to IP.
 func AuthenticatedRateLimitMiddleware(limiter *ratelimit.Limiter) gin.HandlerFunc <span class="cov8" title="1">{
         return func(c *gin.Context) </span><span class="cov8" title="1">{
                 requestID := c.GetString("request_id")
                 var key string
 
-                // Use user ID if available, otherwise use client IP
                 if userID, ok := UserIDFromContext(c.Request.Context()); ok </span><span class="cov8" title="1">{
                         key = "user:" + string(rune(userID))
                 }</span> else<span class="cov0" title="0"> {
@@ -3794,39 +4272,34 @@ func AuthenticatedRateLimitMiddleware(limiter *ratelimit.Limiter) gin.HandlerFun
 }
 </pre>
 		
-		<pre class="file" id="file27" style="display: none">package http
+		<pre class="file" id="file30" style="display: none">package http
 
 import (
         "github.com/gin-gonic/gin"
-        swaggerFiles "github.com/swaggo/files"     // swagger embed files
-        ginSwagger "github.com/swaggo/gin-swagger" // gin-swagger middleware
+        swaggerFiles "github.com/swaggo/files"
+        ginSwagger "github.com/swaggo/gin-swagger"
 
-        _ "go-usersvc-demo/docs" // swagger generated docs
+        _ "go-usersvc-demo/docs"
         "go-usersvc-demo/internal/pkg/ratelimit"
 )
 
-// NewRouter creates and returns a configured Gin engine.
 func NewRouter(h *Handler, authMiddleware gin.HandlerFunc, rateLimiter *ratelimit.Limiter, authRateLimiter *ratelimit.Limiter) *gin.Engine <span class="cov0" title="0">{
-        r := gin.New() // Use gin.New() instead of gin.Default() to avoid default middlewares
+        r := gin.New()
 
-        // Add custom middlewares
         r.Use(RequestIDMiddleware())
         r.Use(RequestLoggingMiddleware())
         r.Use(CORSMiddleware())
         r.Use(RecoveryMiddleware())
-        r.Use(RateLimitMiddleware(rateLimiter)) // Global rate limit for all requests
+        r.Use(RateLimitMiddleware(rateLimiter))
 
-        // Health check
         r.GET("/health", func(c *gin.Context) </span><span class="cov0" title="0">{
                 c.JSON(200, gin.H{"status": "ok"})
         }</span>)
 
-        // Public endpoints
         <span class="cov0" title="0">r.POST("/users", h.CreateUser)
         r.POST("/auth/login", h.Login)
         r.POST("/auth/refresh", h.Refresh)
 
-        // Authenticated user routes with stricter rate limit
         users := r.Group("/users")
         users.Use(authMiddleware)
         users.Use(AuthenticatedRateLimitMiddleware(authRateLimiter))
@@ -3838,7 +4311,6 @@ func NewRouter(h *Handler, authMiddleware gin.HandlerFunc, rateLimiter *ratelimi
                 users.DELETE("/:id", h.DeleteUser)
         }</span>
 
-        // Authenticated email routes with stricter rate limit
         <span class="cov0" title="0">email := r.Group("/email")
         email.Use(authMiddleware)
         email.Use(AuthenticatedRateLimitMiddleware(authRateLimiter))
@@ -3852,7 +4324,7 @@ func NewRouter(h *Handler, authMiddleware gin.HandlerFunc, rateLimiter *ratelimi
 }
 </pre>
 		
-		<pre class="file" id="file28" style="display: none">// Code generated by protoc-gen-go. DO NOT EDIT.
+		<pre class="file" id="file31" style="display: none">// Code generated by protoc-gen-go. DO NOT EDIT.
 // versions:
 //         protoc-gen-go v1.30.0
 //         protoc        v3.21.12
@@ -4698,7 +5170,7 @@ func file_proto_user_proto_init() <span class="cov0" title="0">{
 }
 </pre>
 		
-		<pre class="file" id="file29" style="display: none">// Code generated by protoc-gen-go-grpc. DO NOT EDIT.
+		<pre class="file" id="file32" style="display: none">// Code generated by protoc-gen-go-grpc. DO NOT EDIT.
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.21.12
